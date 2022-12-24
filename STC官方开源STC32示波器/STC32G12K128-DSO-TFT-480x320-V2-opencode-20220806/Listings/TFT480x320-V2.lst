@@ -1,0 +1,856 @@
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE TFT480x320-V2
+OBJECT MODULE PLACED IN .\Objects\TFT480x320-V2.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE TFT480x320-V2.c XSMALL BROWSE DEBUG PRINT(.\Listings\TFT480x320-V2.lst
+                    -) TABS(2) OBJECT(.\Objects\TFT480x320-V2.obj) 
+
+stmt  level    source
+
+    1          
+    2          
+    3          /*************  功能说明  **************
+    4          
+    5          480x320 3.2寸TFT LCD 的基本驱动程序，控制器是ILI9481BDS。
+    6          
+    7          TFT480x320-V2.c  改进、优化程序.
+    8          
+    9          ******************************************/
+   10          
+   11          #include  "TFT480x320.h"
+   12          #include  "ASCII5x7.h"
+   13          #include  "HZK12.h"
+   14          #include  "ASCII_8x16_H.h"
+   15          #include  "HZK16.h"
+   16          
+   17          u16 foreground,background;
+   18          
+   19          
+   20          /****** 定义LCD接口 *********/
+   21          sbit LCD_RS  = P4^5;
+   22          sbit LCD_WR  = P4^2;
+   23          sbit LCD_CS  = P4^3;
+   24          sbit LCD_RST = P4^1;
+   25          sfr  LCD_BUS_H = 0xE8;  //P0--0x80,P1=0x90,P2=0xA0,P3=0x0B0, P6= 0xE8
+   26          sfr  LCD_BUS_L = 0xA0;  //P0--0x80,P1=0x90,P2=0xA0,P3=0x0B0, P6= 0xE8
+   27          
+   28          
+   29          
+   30          /**** LCD基本操作宏定义 ***********/
+   31          
+   32          #define LCD_CS_SET()    LCD_CS = 1
+   33          #define LCD_CS_CLR()    LCD_CS = 0
+   34          
+   35          #define LCD_RST_SET()   LCD_RST = 1
+   36          #define LCD_RST_CLR()   LCD_RST = 0
+   37          
+   38          #define LCD_RS_SET()    LCD_RS = 1
+   39          #define LCD_RS_CLR()    LCD_RS = 0
+   40          
+   41          #define LCD_WR_SET()    LCD_WR = 1
+   42          #define LCD_WR_CLR()    LCD_WR = 0
+   43          
+   44          #define LCD_RD_SET()    LCD_RD = 1
+   45          #define LCD_RD_CLR()    LCD_RD = 0
+   46          
+   47          #define LCD_WriteWord(n)  LCD_BUS_H = (u8)(n>>8); LCD_BUS_L = (u8)n; NOP(1);  LCD_WR_CLR(); NOP(1); LCD_WR
+             -_SET();  NOP(1); 
+   48          
+   49          #define LCD_WR_PULSE()    NOP(1); LCD_WR_CLR(); NOP(1); LCD_WR_SET()
+   50          
+   51          
+   52          //========================================================================
+   53          // 函数: void LCD_delay(u16 ms)
+   54          // 描述: 延时函数
+   55          // 参数: ms 延时时间 1~65535 ms
+   56          // 返回: 无
+   57          // 版本:
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 2   
+
+   58          //========================================================================
+   59          void LCD_delay(u16 ms)
+   60          {
+   61   1          u16 i;
+   62   1        do{
+   63   2        //  i = MAIN_Fosc / 14000;  //STC12F
+   64   2        //  i = MAIN_Fosc / 13000;  //STC15F
+   65   2        //  i = MAIN_Fosc / 10000;  //STC8
+   66   2          i = MAIN_Fosc / 6000; //STC32G
+   67   2          while(--i)  ;
+   68   2          }while(--ms);
+   69   1      }
+   70          
+   71          
+   72          //========================================================================
+   73          // 函数: void LCD_RegWriteComd(u8 cmd)
+   74          // 描述: 写一个字节的命令至LCD中的控制寄存器当中
+   75          // 参数: cmd: 寄存器命令
+   76          // 返回: 无
+   77          // 备注: 
+   78          // 版本:
+   79          //      2007/04/10      First version
+   80          //========================================================================
+   81          void LCD_RegWriteComd(u8 cmd)
+   82          {
+   83   1        LCD_RS_CLR();     //point to ID register
+   84   1        LCD_CS_CLR();
+   85   1        LCD_BUS_H = 0;
+   86   1        LCD_BUS_L = cmd;
+   87   1        LCD_WR_PULSE();
+   88   1        LCD_RS_SET();     //point to GRAM
+   89   1        LCD_CS_SET();
+   90   1      }
+   91          
+   92          //=========== 写一个字节的数据至LCD中的控制寄存器当中 ===================
+   93          void LCD_RegWriteData(u8 dat)
+   94          {
+   95   1      //  LCD_RS_SET();     //point to GRAM
+   96   1        LCD_CS_CLR();
+   97   1        LCD_BUS_H = 0;
+   98   1        LCD_BUS_L = dat;
+   99   1        LCD_WR_PULSE();
+  100   1        LCD_CS_SET();
+  101   1      }
+  102          
+  103          
+  104          //========================================================================
+  105          // 函数: void LCD_Init(void)
+  106          // 描述: LCD初始化程序，在里面会完成LCD初始所需要设置的许多寄存器，具体如果
+  107          //     用户想了解，建议查看DataSheet当中各个寄存器的意义
+  108          // 参数: 无 
+  109          // 返回: 无
+  110          // 版本: V1.0
+  111          //========================================================================
+  112          void LCD_Init(void)
+  113          {
+  114   1        P6n_standard(0xff);
+  115   1        P2n_standard(0xff);
+  116   1        P4n_standard(0x2e);
+  117   1      
+  118   1        background = 0x00;
+  119   1        foreground = 0xffff;
+  120   1      
+  121   1        LCD_RS_SET();
+  122   1        LCD_CS_SET();
+  123   1        LCD_BUS_H = 0xFF;
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 3   
+
+  124   1        LCD_BUS_L = 0xFF;
+  125   1        LCD_WR_SET();
+  126   1      
+  127   1        LCD_RST_SET();
+  128   1        LCD_delay(150);
+  129   1        LCD_RST_CLR();
+  130   1        LCD_delay(150);
+  131   1        LCD_RST_SET();
+  132   1        LCD_delay(150);
+  133   1      
+  134   1        //************* ILI9481初始化**********//
+  135   1        LCD_RegWriteComd(0x11);
+  136   1        LCD_delay(20);
+  137   1        LCD_RegWriteComd(0xD0);
+  138   1        LCD_RegWriteData(0x07);
+  139   1        LCD_RegWriteData(0x42);
+  140   1        LCD_RegWriteData(0x18);
+  141   1        
+  142   1        LCD_RegWriteComd(0xD1);
+  143   1        LCD_RegWriteData(0x00);
+  144   1        LCD_RegWriteData(0x07);//07
+  145   1        LCD_RegWriteData(0x10);
+  146   1        
+  147   1        LCD_RegWriteComd(0xD2);
+  148   1        LCD_RegWriteData(0x01);
+  149   1        LCD_RegWriteData(0x02);
+  150   1        
+  151   1        LCD_RegWriteComd(0xC0);
+  152   1        LCD_RegWriteData(0x10);
+  153   1        LCD_RegWriteData(0x3B);
+  154   1        LCD_RegWriteData(0x00);
+  155   1        LCD_RegWriteData(0x02);
+  156   1        LCD_RegWriteData(0x11);
+  157   1        
+  158   1        LCD_RegWriteComd(0xC5);
+  159   1        LCD_RegWriteData(0x03);
+  160   1        
+  161   1        LCD_RegWriteComd(0xC8);
+  162   1        LCD_RegWriteData(0x00);
+  163   1        LCD_RegWriteData(0x32);
+  164   1        LCD_RegWriteData(0x36);
+  165   1        LCD_RegWriteData(0x45);
+  166   1        LCD_RegWriteData(0x06);
+  167   1        LCD_RegWriteData(0x16);
+  168   1        LCD_RegWriteData(0x37);
+  169   1        LCD_RegWriteData(0x75);
+  170   1        LCD_RegWriteData(0x77);
+  171   1        LCD_RegWriteData(0x54);
+  172   1        LCD_RegWriteData(0x0C);
+  173   1        LCD_RegWriteData(0x00);
+  174   1        
+  175   1        LCD_RegWriteComd(0x36);
+  176   1        #if (X_DOTS == 320)
+  177   1          LCD_RegWriteData(0x0A);
+  178   1        #endif
+  179   1        #if (X_DOTS == 480)
+                   LCD_RegWriteData(0x28);
+                 #endif
+  182   1        
+  183   1        LCD_RegWriteComd(0x3A);
+  184   1        LCD_RegWriteData(0x55);
+  185   1        
+  186   1        LCD_RegWriteComd(0x2A);
+  187   1        LCD_RegWriteData(0x00);
+  188   1        LCD_RegWriteData(0x00);
+  189   1      //  LCD_RegWriteData(0x01);
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 4   
+
+  190   1      //  LCD_RegWriteData(0x3F);
+  191   1        LCD_RegWriteData(((X_DOTS-1)>>8));
+  192   1        LCD_RegWriteData(((X_DOTS-1)&0xff));
+  193   1        
+  194   1        LCD_RegWriteComd(0x2B);
+  195   1        LCD_RegWriteData(0x00);
+  196   1        LCD_RegWriteData(0x00);
+  197   1      //  LCD_RegWriteData(0x01);
+  198   1      //  LCD_RegWriteData(0xE0);
+  199   1        LCD_RegWriteData(((Y_DOTS-1)>>8));
+  200   1        LCD_RegWriteData(((Y_DOTS-1)&0xff));
+  201   1      
+  202   1        LCD_delay(120);
+  203   1      //  LCD_RegWriteComd(0x21); //取反显示, 有的屏要取反才是正常显示
+  204   1        LCD_RegWriteComd(0x29);
+  205   1        LCD_RegWriteComd(0x2c);
+  206   1      
+  207   1        //设置LCD属性参数
+  208   1        SetView_V();    //竖屏
+  209   1        LCD_delay(1);
+  210   1        LCD_Fill_XY(0,0,X_DOTS,Y_DOTS,0x0000);
+  211   1      
+  212   1      }
+  213          
+  214          
+  215          /*************************************************
+  216          函数: void LCD_SetWindows(u16 xStar, u16 yStar,u16 xEnd,u16 yEnd)
+  217          功能: 设置lcd显示窗口，在此区域写点数据自动换行. 每行从 xStar开始 到yStar结束, 如果xStar==yStar则只写一点
+             -便换行, 可以用于画竖线.
+  218          入口: xy起点和终点
+  219          返回: 无
+  220          *************************************************/
+  221          void LCD_SetWindows(u16 xStar, u16 yStar,u16 xEnd,u16 yEnd)
+  222          {
+  223   1        LCD_RegWriteComd(0x2a); 
+  224   1        LCD_RegWriteData((u8)(xStar>>8));
+  225   1        LCD_RegWriteData((u8)(xStar &0xff));    
+  226   1        LCD_RegWriteData((u8)(xEnd>>8));
+  227   1        LCD_RegWriteData((u8)(xEnd &0xff));
+  228   1      
+  229   1        LCD_RegWriteComd(0x2b); 
+  230   1        LCD_RegWriteData((u8)(yStar>>8));
+  231   1        LCD_RegWriteData((u8)(yStar &0xff));    
+  232   1        LCD_RegWriteData((u8)(yEnd>>8));
+  233   1        LCD_RegWriteData((u8)(yEnd &0xff)); 
+  234   1      
+  235   1        LCD_RegWriteComd(0x2c); //开始写入GRAM
+  236   1      }   
+  237          
+  238          //========================================================================
+  239          // 函数: void LCD_Fill_XY(u8 x0,u16 y0,u8 x,u16 y,u16 color)
+  240          // 描述: 给屏填充开始坐标为x0,y0,长x,高y,以color的数据至各点中
+  241          // 参数: x0,y0 开始坐标,  x 长, y 高, color: 要填充的颜色数据
+  242          // 返回: 无
+  243          // 版本: V1.0
+  244          //========================================================================
+  245          void LCD_Fill_XY(u16 x0,u16 y0,u16 x,u16 y,u16 color)
+  246          {
+  247   1        u8 i;
+  248   1      
+  249   1        LCD_SetWindows(x0,y0,x0+x-1,y0+y-1);  //设置显示窗口
+  250   1        LCD_RS = 1; LCD_CS_CLR();
+  251   1        LCD_BUS_H = (u8)(color>>8);
+  252   1        LCD_BUS_L = (u8)color;
+  253   1      
+  254   1        i = (u8)(((u32)x *(u32)y) & 7); //先写不足8倍的余数
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 5   
+
+  255   1        while(i != 0)
+  256   1        {
+  257   2          LCD_WR_PULSE();
+  258   2          i--;
+  259   2        }
+  260   1        x = (u16)(((u32)x *(u32)y) /8); //写8倍点
+  261   1        while(x != 0) //平均每个循坏额外增加8T
+  262   1        {
+  263   2          LCD_WR_PULSE(); //发一个写脉冲, 则写入一个点(2字节).
+  264   2          LCD_WR_PULSE();
+  265   2          LCD_WR_PULSE();
+  266   2          LCD_WR_PULSE();
+  267   2          LCD_WR_PULSE();
+  268   2          LCD_WR_PULSE();
+  269   2          LCD_WR_PULSE();
+  270   2          LCD_WR_PULSE();
+  271   2          x--;
+  272   2        }
+  273   1        LCD_CS_SET();
+  274   1      
+  275   1      }
+  276          
+  277          
+  278          /**********************************************/
+  279          /*  x,y为起始坐标,index为ASCII字符  */
+  280          void text_ascii5x7(u16 x,u16 y,u8 index)
+  281          {
+  282   1        u8 const *p;
+  283   1        u8 i,s,b;
+  284   1      
+  285   1        if(x > 474) return; //溢出
+  286   1        if(y > 314) return; //溢出
+  287   1      
+  288   1        LCD_SetWindows(x,y,x+5-1,y+8-1);
+  289   1        LCD_RS = 1; LCD_CS = 0;
+  290   1      
+  291   1        p = (u16)index * 8 + ASCII5x7;
+  292   1        for(i=0; i<8; i++)
+  293   1        {    
+  294   2          b = *p; p++;
+  295   2          for(s=0; s<5; s++)
+  296   2          {
+  297   3            if(b & 0x10)  {LCD_WriteWord(foreground);}
+  298   3            else      {LCD_WriteWord(background);}
+  299   3            b <<= 1;
+  300   3          }
+  301   2        }
+  302   1        LCD_CS = 1;
+  303   1      }
+  304          
+  305          //========================================================================
+  306          // 函数: void HZ_12x12s(u16 x,u16 y,u16 hz_code)
+  307          // 描述: 以x,y为起始坐标,hz为汉字首地址，显示11*11的汉字。
+  308          //     在背景色background上用前景色foreground显示汉字。
+  309          // 参数: x  y轴坐标     hz 汉字首地址
+  310          // 返回: 无
+  311          // 备注: 使用前景色
+  312          //========================================================================
+  313          void HZ_12x12s(u16 x,u16 y,u16 hz_code)
+  314          {
+  315   1        u8 const *p;
+  316   1        u8 i,s,b;
+  317   1      
+  318   1        if(x > 468) return; //溢出
+  319   1        if(y > 308) return; //溢出
+  320   1      
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 6   
+
+  321   1        LCD_SetWindows(x,y,x+12-1,y+12-1);
+  322   1        LCD_RS = 1; LCD_CS = 0;
+  323   1      
+  324   1        p = hz_code * 18 + HZK12;
+  325   1        for(i=0; i<18; i++)
+  326   1        {    
+  327   2          b = *p; p++;
+  328   2          for(s=0; s<8; s++)
+  329   2          {
+  330   3            if(b & 0x80)  {LCD_WriteWord(foreground);}
+  331   3            else      {LCD_WriteWord(background);}
+  332   3            b <<= 1;
+  333   3          }
+  334   2        }
+  335   1        LCD_CS = 0;
+  336   1      }
+  337          
+  338          /************ 字符串显示 *************************/
+  339          void  printf_text(u16 x,u16 y,u8 *ptr)
+  340          {
+  341   1          u8 c1,c2,i;
+  342   1        
+  343   1        for (;;)
+  344   1        {
+  345   2              c1 = *ptr;
+  346   2          ptr++;
+  347   2          if(c1 == 0)   return; //遇到停止符0结束
+  348   2          if(c1 < 0xa0)     //ASCII码
+  349   2          {
+  350   3            text_ascii5x7(x,y+2,c1);
+  351   3            x += 6;
+  352   3          }
+  353   2          else          //汉字
+  354   2          {
+  355   3            c2 = *ptr;
+  356   3            ptr++;
+  357   3            if(c2 == 0)   return; //遇到停止符0结束
+  358   3      
+  359   3            for(i=0; i < sizeof(HZK)/2; i++)    // 查找定位
+  360   3            {       
+  361   4              if((c1 == HZK[i*2]) && (c2 == HZK[i*2+1]))
+  362   4              {
+  363   5                HZ_12x12s(x,y,(u16)i);
+  364   5                x += 12;
+  365   5              }
+  366   4            }
+  367   3          }
+  368   2        }
+  369   1      } 
+  370          
+  371          //========================================================================
+  372          // 函数: void Line_h(u8 x,u16 y,u8 lenth,u16 color)
+  373          // 描述: 在x、y为起始坐标，lenth为长度，color为颜色绘制一条横线
+  374          // 参数: x  X轴坐标     y  Y轴坐标
+  375          // 返回: 无
+  376          // 备注: 使用前景色
+  377          // 版本: V1.0
+  378          //========================================================================
+  379          void  Line_h(u16 x,u16 y,u16 lenth,u16 color)
+  380          {  
+  381   1        u8  i;
+  382   1        
+  383   1        LCD_SetWindows(x,y,x+lenth-1, y);
+  384   1        LCD_CS_CLR();
+  385   1        LCD_BUS_H = (u8)(color>>8);
+  386   1        LCD_BUS_L = (u8)color;
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 7   
+
+  387   1      
+  388   1        i = (u8)lenth & 7;
+  389   1        while(i != 0)
+  390   1        {
+  391   2          LCD_WR_PULSE();
+  392   2          i--;
+  393   2        }
+  394   1        i = (u8)(lenth >> 3);
+  395   1        while(i != 0)
+  396   1        {
+  397   2          LCD_WR_PULSE(); //发一个写脉冲, 则写入一个点(2字节).
+  398   2          LCD_WR_PULSE();
+  399   2          LCD_WR_PULSE();
+  400   2          LCD_WR_PULSE();
+  401   2          LCD_WR_PULSE();
+  402   2          LCD_WR_PULSE();
+  403   2          LCD_WR_PULSE();
+  404   2          LCD_WR_PULSE();
+  405   2          i--;
+  406   2        }
+  407   1        LCD_CS_SET();
+  408   1      }
+  409          
+  410          //========================================================================
+  411          // 函数: void Line_v(u8 x,u16 y,u16 lenth,u16 color)
+  412          // 描述: 在x、y为起始坐标，lenth为长度，color为颜色绘制一条竖线
+  413          // 参数: x  X轴坐标     y  Y轴坐标
+  414          // 返回: 无
+  415          // 备注: 使用前景色
+  416          // 版本: V1.0
+  417          //========================================================================
+  418          void  Line_v(u16 x,u16 y,u16 lenth,u16 color)
+  419          {  
+  420   1        u8  i;
+  421   1      
+  422   1        LCD_SetWindows(x,y,x,y+lenth-1);
+  423   1        LCD_CS_CLR();
+  424   1        LCD_BUS_H = (u8)(color>>8);
+  425   1        LCD_BUS_L = (u8)color;
+  426   1      
+  427   1        i = (u8)lenth & 7;
+  428   1        while(i != 0)
+  429   1        {
+  430   2          LCD_WR_PULSE();
+  431   2          i--;
+  432   2        }
+  433   1        i = (u8)(lenth >> 3);
+  434   1        while(i != 0)
+  435   1        {
+  436   2          LCD_WR_PULSE(); //发一个写脉冲, 则写入一个点(2字节).
+  437   2          LCD_WR_PULSE();
+  438   2          LCD_WR_PULSE();
+  439   2          LCD_WR_PULSE();
+  440   2          LCD_WR_PULSE();
+  441   2          LCD_WR_PULSE();
+  442   2          LCD_WR_PULSE();
+  443   2          LCD_WR_PULSE();
+  444   2          i--;
+  445   2        }
+  446   1        LCD_CS_SET();
+  447   1      }
+  448          
+  449          
+  450          //========================================================================
+  451          // 函数: void Rectangle(u8 x0,u16 y0,u8 x,u16 y,u16 color)
+  452          // 描述: 画矩形
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 8   
+
+  453          // 参数: x0,y0开始坐标, x 长, y 高, colcr 颜色
+  454          // 返回: 无
+  455          // 版本:
+  456          //========================================================================
+  457          void Rectangle(u16 x0,u16 y0,u16 x,u16 y,u16 color)
+  458          {
+  459   1        Line_h(x0,y0,x,color);
+  460   1        Line_h(x0,y0+y-1,x,color);
+  461   1        Line_v(x0,y0,y,color);
+  462   1        Line_v(x0+x-1,y0,y,color);
+  463   1      }
+  464          
+  465          void  SetView_H(void)   //横屏
+  466          {
+  467   1        LCD_RegWriteComd(0x36);
+  468   1      //  LCD_RegWriteData(0x28);   //横屏
+  469   1        LCD_RegWriteData(0x2B);   //横屏 旋转180度
+  470   1      
+  471   1        LCD_RegWriteComd(0x2A);
+  472   1        LCD_RegWriteData(0x00);
+  473   1        LCD_RegWriteData(0x00);
+  474   1        LCD_RegWriteData(((480-1)>>8));
+  475   1        LCD_RegWriteData(((480-1)&0xff));
+  476   1      
+  477   1        LCD_RegWriteComd(0x2B);
+  478   1        LCD_RegWriteData(0x00);
+  479   1        LCD_RegWriteData(0x00);
+  480   1        LCD_RegWriteData(((320-1)>>8));
+  481   1        LCD_RegWriteData(((320-1)&0xff));
+  482   1      }
+  483          void  SetView_V(void)   //竖屏
+  484          {
+  485   1        LCD_RegWriteComd(0x36);
+  486   1      //  LCD_RegWriteData(0x0A);   //竖屏
+  487   1        LCD_RegWriteData(0x09);   //竖屏 旋转180度
+  488   1      
+  489   1        LCD_RegWriteComd(0x2A);
+  490   1        LCD_RegWriteData(0x00);
+  491   1        LCD_RegWriteData(0x00);
+  492   1        LCD_RegWriteData(((320-1)>>8));
+  493   1        LCD_RegWriteData(((320-1)&0xff));
+  494   1      
+  495   1        LCD_RegWriteComd(0x2B);
+  496   1        LCD_RegWriteData(0x00);
+  497   1        LCD_RegWriteData(0x00);
+  498   1        LCD_RegWriteData(((480-1)>>8));
+  499   1        LCD_RegWriteData(((480-1)&0xff));
+  500   1      }
+  501          
+  502          //=============== 画单个点函数 =============================
+  503          void  WriteSingleDot(u16 x, u16 y, u16 color)
+  504          {
+  505   1        LCD_SetWindows(x,y, x,y);
+  506   1        LCD_CS_CLR();
+  507   1        LCD_WriteWord(color);
+  508   1        LCD_CS_SET();
+  509   1      }
+  510          
+  511          //专门针对示波器写格子函数, 为了尽量快, 空间换时间, 加速处理.
+  512          //写入8个点
+  513          void  Write_8dots(void)
+  514          {
+  515   1        LCD_WR_PULSE(); //发一个写脉冲, 则写入一个点(2字节).
+  516   1        LCD_WR_PULSE();
+  517   1        LCD_WR_PULSE();
+  518   1        LCD_WR_PULSE();
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 9   
+
+  519   1        LCD_WR_PULSE();
+  520   1        LCD_WR_PULSE();
+  521   1        LCD_WR_PULSE();
+  522   1        LCD_WR_PULSE();
+  523   1      }
+  524          //写入7个点
+  525          void  Write_7dots(void)
+  526          {
+  527   1        LCD_WR_PULSE(); //发一个写脉冲, 则写入一个点(2字节).
+  528   1        LCD_WR_PULSE();
+  529   1        LCD_WR_PULSE();
+  530   1        LCD_WR_PULSE();
+  531   1        LCD_WR_PULSE();
+  532   1        LCD_WR_PULSE();
+  533   1        LCD_WR_PULSE();
+  534   1      }
+  535          
+  536          //每隔25点画一个标记点
+  537          void  Line_Grid25(u16 x,u16 y,u16 color)
+  538          {  
+  539   1        u8  i;
+  540   1        
+  541   1        LCD_SetWindows(x,y,x+251-1, y);
+  542   1        LCD_CS_CLR();
+  543   1        for(i=0; i<4; i++)
+  544   1        {
+  545   2          LCD_BUS_H = (u8)(BLACK>>8);
+  546   2          LCD_BUS_L = (u8)BLACK;
+  547   2          Write_8dots();  //写24个点黑色
+  548   2          Write_8dots();
+  549   2          Write_8dots();
+  550   2          LCD_WriteWord(color); //写一个点
+  551   2        }
+  552   1          LCD_BUS_H = (u8)(BLACK>>8);
+  553   1          LCD_BUS_L = (u8)BLACK;
+  554   1          Write_8dots();  //写23个点黑色
+  555   1          Write_8dots();
+  556   1          Write_7dots();
+  557   1          LCD_BUS_H = (u8)(color>>8);
+  558   1          LCD_BUS_L = (u8)color;
+  559   1          LCD_WR_PULSE(); //写一个点
+  560   1          LCD_WR_PULSE(); //写一个点
+  561   1          LCD_WR_PULSE(); //写一个点
+  562   1      
+  563   1          LCD_BUS_H = (u8)(BLACK>>8);
+  564   1          LCD_BUS_L = (u8)BLACK;
+  565   1          Write_8dots();  //写23个点黑色
+  566   1          Write_8dots();
+  567   1          Write_7dots();
+  568   1          LCD_WriteWord(color); //写一个点
+  569   1      
+  570   1        for(i=0; i<3; i++)
+  571   1        {
+  572   2          LCD_BUS_H = (u8)(BLACK>>8);
+  573   2          LCD_BUS_L = (u8)BLACK;
+  574   2          Write_8dots();  //写24个点黑色
+  575   2          Write_8dots();
+  576   2          Write_8dots();
+  577   2          LCD_WriteWord(color); //写一个点
+  578   2        }
+  579   1      
+  580   1          LCD_BUS_H = (u8)(BLACK>>8);
+  581   1          LCD_BUS_L = (u8)BLACK;
+  582   1          Write_8dots();  //写26个点黑色
+  583   1          Write_8dots();
+  584   1          Write_8dots();
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 10  
+
+  585   1          LCD_WR_PULSE(); //写一个点
+  586   1          LCD_WR_PULSE(); //写一个点
+  587   1        LCD_CS_SET();
+  588   1      }
+  589          
+  590          //每隔5点画一个标记点
+  591          void  Line_Grid5(u16 x,u16 y,u16 color)
+  592          {  
+  593   1        u8  i;
+  594   1        
+  595   1        LCD_SetWindows(x,y,x+251-1, y);
+  596   1        LCD_CS_CLR();
+  597   1        for(i=0; i<120; i +=5)
+  598   1        {
+  599   2          LCD_BUS_H = (u8)(BLACK>>8);
+  600   2          LCD_BUS_L = (u8)BLACK;
+  601   2          LCD_WR_PULSE(); //写4个点
+  602   2          LCD_WR_PULSE();
+  603   2          LCD_WR_PULSE();
+  604   2          LCD_WR_PULSE();
+  605   2          LCD_WriteWord(color); //写一个点
+  606   2        }
+  607   1          LCD_BUS_H = (u8)(BLACK>>8);
+  608   1          LCD_BUS_L = (u8)BLACK;
+  609   1          LCD_WR_PULSE(); //写3个点
+  610   1          LCD_WR_PULSE();
+  611   1          LCD_WR_PULSE();
+  612   1          LCD_BUS_H = (u8)(color>>8);
+  613   1          LCD_BUS_L = (u8)color;
+  614   1          LCD_WR_PULSE(); //写一个点
+  615   1          LCD_WR_PULSE(); //写一个点
+  616   1          LCD_WR_PULSE(); //写一个点
+  617   1      
+  618   1          LCD_BUS_H = (u8)(BLACK>>8);
+  619   1          LCD_BUS_L = (u8)BLACK;
+  620   1          LCD_WR_PULSE(); //写3个点
+  621   1          LCD_WR_PULSE();
+  622   1          LCD_WR_PULSE();
+  623   1          LCD_WriteWord(color); //写一个点
+  624   1      
+  625   1        for(i=130; i<245; i +=5)
+  626   1        {
+  627   2          LCD_BUS_H = (u8)(BLACK>>8);
+  628   2          LCD_BUS_L = (u8)BLACK;
+  629   2          LCD_WR_PULSE(); //写4个点
+  630   2          LCD_WR_PULSE();
+  631   2          LCD_WR_PULSE();
+  632   2          LCD_WR_PULSE();
+  633   2          LCD_WriteWord(color); //写一个点
+  634   2        }
+  635   1          LCD_BUS_H = (u8)(BLACK>>8);
+  636   1          LCD_BUS_L = (u8)BLACK;
+  637   1          LCD_WR_PULSE(); //写6个点
+  638   1          LCD_WR_PULSE();
+  639   1          LCD_WR_PULSE();
+  640   1          LCD_WR_PULSE();
+  641   1          LCD_WR_PULSE();
+  642   1          LCD_WR_PULSE();
+  643   1        LCD_CS_SET();
+  644   1      }
+  645          
+  646          
+  647          u16 xdata DMA_tmp[256];
+  648          
+  649          /**********************************************/
+  650          /*  x,y为起始坐标,index为ASCII字符  */
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 11  
+
+  651          void DMA_text_ascii_8x16(u16 x,u16 y,u8 index)
+  652          {
+  653   1        u8 const *p;
+  654   1        u8 i,s,b;
+  655   1        u16 j;
+  656   1      
+  657   1        if(x > 472) return; //溢出
+  658   1        if(y > 312) return; //溢出
+  659   1        if(index < 0x20)  return; //溢出
+  660   1      
+  661   1        p = (u16)(index-0x20) * 16 + ASCII_8x16_H;
+  662   1        for(j=0, i=0; i<16; i++)
+  663   1        {    
+  664   2          b = *p; p++;
+  665   2          for(s=0; s<8; s++)
+  666   2          {
+  667   3            if(b & 0x80)  DMA_tmp[j] = foreground;
+  668   3            else      DMA_tmp[j] = background;
+  669   3            b <<= 1;
+  670   3            j++;
+  671   3          }
+  672   2        }
+  673   1        LCD_SetWindows(x,y,x+8-1,y+16-1);
+  674   1        LCD_RS = 1; LCD_CS = 0;
+  675   1        DMA_LCM_AMT  = (u8)(128-1);     //设置传输总字节数(低8位)：n+1
+  676   1        DMA_LCM_AMTH = (u8)((128-1)>>8);  //设置传输总字节数(高8位)：n+1
+  677   1        DMA_LCM_STA  = 0x00;
+  678   1        DMA_LCM_CR   = 0xa0;  //启动DMA传输数据功能
+  679   1        while((DMA_LCM_STA & 0x01) == 0)  { NOP(1); } //等待DMA传输完成
+  680   1        DMA_LCM_STA  = 0x00;
+  681   1        DMA_LCM_CR   = 0x00;  //禁止DMA
+  682   1        LCD_CS = 1;
+  683   1      }
+  684            
+  685          
+  686          //========================================================================
+  687          // 函数: void HZ_12x12s(u16 x,u16 y,u16 hz_code)
+  688          // 描述: 以x,y为起始坐标,hz为汉字首地址，显示11*11的汉字。
+  689          //     在背景色background上用前景色foreground显示汉字。
+  690          // 参数: x  y轴坐标     hz 汉字首地址
+  691          // 返回: 无
+  692          // 备注: 使用前景色
+  693          //========================================================================
+  694          void DMA_HZ_16x16(u16 x,u16 y,u16 hz_code)
+  695          {
+  696   1        u8  const *p;
+  697   1        u8  i,s,b;
+  698   1        u16 j;
+  699   1      
+  700   1        if(x > 464) return; //溢出
+  701   1        if(y > 304) return; //溢出
+  702   1        
+  703   1        p = hz_code * 32 + HZK_16;
+  704   1        for(j=0, i=0; i<32; i++)
+  705   1        {    
+  706   2          b = *p; p++;
+  707   2          for(s=0; s<8; s++)
+  708   2          {
+  709   3            if(b & 0x80)  DMA_tmp[j] = foreground;
+  710   3            else      DMA_tmp[j] = background;
+  711   3            b <<= 1;
+  712   3            j++;
+  713   3          }
+  714   2        }
+  715   1        LCD_SetWindows(x,y,x+16-1,y+16-1);
+  716   1        LCD_RS = 1; LCD_CS = 0;
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 12  
+
+  717   1        DMA_LCM_AMT  = (u8)(256-1);     //设置传输总字节数(低8位)：n+1
+  718   1        DMA_LCM_AMTH = (u8)((256-1)>>8);  //设置传输总字节数(高8位)：n+1
+  719   1        DMA_LCM_STA  = 0x00;
+  720   1        DMA_LCM_CR   = 0xa0;  //启动DMA传输数据功能
+  721   1        while((DMA_LCM_STA & 0x01) == 0)  { NOP(1); } //等待DMA传输完成
+  722   1        DMA_LCM_STA  = 0x00;
+  723   1        DMA_LCM_CR   = 0x00;  //禁止DMA
+  724   1        LCD_CS = 1;
+  725   1      }
+  726          /************ DMA字符串显示 *************************/
+  727          //传输显示数据时使用DMA.
+  728          void  DMA_printf_text16(u16 x,u16 y,u8 *ptr)
+  729          {
+  730   1          u8 c1,c2,i;
+  731   1        
+  732   1        for (;;)
+  733   1        {
+  734   2              c1 = *ptr;
+  735   2          ptr++;
+  736   2          if(c1 == 0)   return; //遇到停止符0结束
+  737   2          if(c1 < 0xa0)     //ASCII码
+  738   2          {
+  739   3            DMA_text_ascii_8x16(x,y+2,c1);
+  740   3            x += 8;
+  741   3          }
+  742   2          else          //汉字
+  743   2          {
+  744   3            c2 = *ptr;
+  745   3            ptr++;
+  746   3            if(c2 == 0)   return; //遇到停止符0结束
+  747   3      
+  748   3            for(i=0; i < sizeof(HZK16)/2; i++)    // 查找定位
+  749   3            {       
+  750   4              if((c1 == HZK16[i*2]) && (c2 == HZK16[i*2+1]))
+  751   4              {
+  752   5                DMA_HZ_16x16(x,y,(u16)i);
+  753   5                x += 16;
+  754   5              }
+  755   4            }
+  756   3          }
+  757   2        }
+  758   1      }
+  759          
+  760          
+  761          /*****************************************************************************
+  762           * @name       :void LCM_Config(void)
+  763           * @date       :2018-11-13 
+  764           * @function   :Config LCM
+  765           * @parameters :None
+  766           * @retvalue   :None
+  767          ******************************************************************************/ 
+  768          void LCM_Config(void)
+  769          {
+  770   1        P_SW2 |= 0x80;
+  771   1        LCMIFCFG  = 0x06; //P6高字节, P2低字节, 16为数据, 8080接口.
+  772   1        LCMIFCFG2 = 0x09; //RS:P45,RD:P44,WR:P42; Setup Time=2,HOLD Time=1
+  773   1        LCMIFSTA  = 0x00;
+  774   1        LCMIFCR   = 0x80;   //Enable interface, write command out
+  775   1      }
+  776          
+  777          /*****************************************************************************
+  778           * @name       :void DMA_Config(void)
+  779           * @date       :2020-12-09 
+  780           * @function   :Config DMA
+  781           * @parameters :None
+  782           * @retvalue   :None
+C251 COMPILER V5.60.0,  TFT480x320-V2                                                      20/07/22  18:50:15  PAGE 13  
+
+  783          ******************************************************************************/ 
+  784          void DMA_Config(void)
+  785          {
+  786   1        P_SW2 |= 0x80;
+  787   1        DMA_LCM_AMT  = (u8)(512-1);     //设置传输总字节数(低8位)：n+1
+  788   1        DMA_LCM_AMTH = (u8)((512-1)>>8);  //设置传输总字节数(高8位)：n+1
+  789   1        DMA_LCM_TXAH = (u8)((u16)&DMA_tmp >> 8);  //发送地址寄存器高字节
+  790   1        DMA_LCM_TXAL = (u8)((u16)&DMA_tmp);     //发送地址寄存器低字节
+  791   1        DMA_LCM_STA  = 0x00;
+  792   1        DMA_LCM_CFG  = 0x00;    //不用中断
+  793   1        DMA_LCM_CR   = 0x00;
+  794   1      }
+  795          
+  796          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =      2708     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =       512     ------
+  xdata-const size     =    ------     ------
+  edata size           =         4         26
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =      4168     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

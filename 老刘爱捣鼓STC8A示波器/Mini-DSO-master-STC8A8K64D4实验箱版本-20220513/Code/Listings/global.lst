@@ -1,0 +1,91 @@
+C51 COMPILER V9.59.0.0   GLOBAL                                                            05/13/2022 14:16:09 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE GLOBAL
+OBJECT MODULE PLACED IN .\Objects\global.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE global.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listi
+                    -ngs\global.lst) OBJECT(.\Objects\global.obj)
+
+line level    source
+
+   1          #include "global.h"
+   2          
+   3          uint16 Lsb;                                                //ÊäÈë²ÉÑù¶Ë·ÖÑ¹ÏµÊýx100 / Input voltage dividi
+             -ng coefficient x 100
+   4          uint16 VBat;                                               //µç³ØµçÑ¹ / Voltage of battery
+   5          uint8 WaveLength;                                          //²¨³¤ / Wave length
+   6          uint32 WaveFreq;                                           //²¨ÆµÂÊ / Wave frequency
+   7          int16 TriLevel;                                            //ÓÃ»§Éè¶¨´¥·¢Öµ£¬mV / Trigger Level in mV
+   8          uint8 TriPos;                                              //´¥·¢Î»ÖÃ / Trigger Position
+   9          int8 TriPosOffset;                                         //´¥·¢Î»ÖÃÆ«ÒÆÁ¿ / Trigger Position Offset
+  10          int16 RulerVMin, RulerVMax;                                //×ÝÖáµçÑ¹×î´ó×îÐ¡Öµ / Min and Max voltage on v
+             -ertical ruler
+  11          uint16 VMax, VMin;                                         //ÆÁÄ»²¨ÐÎµÄ×î´óºÍ×îÐ¡µçÑ¹mV£¬ÉÏÏÞ65535mV
+  12          uint16 BGV;                                               //ÄÚ²¿BG²Î¿¼µçÑ¹
+  13          uint16 ADCbg;                                              //ÄÚ²¿BG²Î¿¼ADC
+  14          uint16 TriggerADC;                                         //´¥·¢ÖµADC
+  15          uint16 WaveLengthSumNum;                                   //Æ½¾ù²¨ÐÎ³¤¶ÈÇóºÍ´ÎÊý
+  16          uint32 WaveLengthSum;                                      //Æ½¾Ö²¨ÐÎ³¤¶ÈÇóºÍ
+  17          int8 ScaleH_tmp;                                           //ÁÙÊ±¼ÇÂ¼²ÉÑùÍê³ÉµÄÊ±¼äÇø¼ä
+  18          uint8 OLED_Brightness;                                     //OLEDÁÁ¶È1-254
+  19          bit OLED_BrightnessChanged;                                //OLEDÐÞ¸Ä±êÖ¾Î»
+  20          bit DisplayUpdate;                                         //¸üÐÂÆÁÄ»ÐÅÏ¢±êÖ¾Î»
+  21          bit EC11PressAndRotate;                                    //EC11±àÂëÆ÷°´ÏÂÍ¬Ê±Ðý×ª±êÖ¾Î»
+  22          bit DisplayUpdate;                                         //¸üÐÂÆÁÄ»ÐÅÏ¢±êÖ¾Î»
+  23          bit ClearDisplay;                                          //Çå¿ÕÆÁÄ»±êÖ¾Î»
+  24          bit ClearWave;                                             //Çå¿Õ²¨ÐÎ±êÖ¾Î»
+  25          bit ADCRunning;                                            //ADC²ÉÑù±êÖ¾Î»
+  26          bit ADCInterrupt;                                          //ADC²ÉÑùÖÐ¶Ï±êÖ¾Î»
+  27          bit UpdateVbat;                                            //¸üÐÂµç³ØµçÑ¹ÐÅÏ¢±êÖ¾Î»
+  28          bit OptionChanged;                                         //ÉèÖÃ±»ÐÞ¸Ä±êÖ¾Î»
+  29          bit InSettings;                                            //½øÈëÉèÖÃ½çÃæ±êÖ¾Î»
+  30          bit PlotMode;                                              //»æÍ¼Ä£Ê½ 0:Vect 1:Dots
+  31          bit TriSlope;                                              //´¥·¢·½Ïò£¬1£ºÉÏÉý´¥·¢£¬0£ºÏÂ½µ´¥·¢
+  32          bit TriFail;                                               //´¥·¢Ê§°Ü±êÖ¾Î»
+  33          bit WaveScroll;                                            //²¨ÐÎ¹ö¶¯±êÖ¾Î»
+  34          bit WaveUpdate;                                            //¸üÐÂ²¨ÐÎ±êÖ¾Î»
+  35          bit ScaleV_Auto;                                           //×Ô¶¯Á¿³Ì±êÖ¾Î»
+  36          bit ADCComplete;                                           //ADCÍê³É²ÉÑù£¬Îªµ¥´Î²ÉÑù·þÎñ
+  37          int8 ScaleH = 2;                                           //Ê±¼äÇø¼ä£¬0-11¶ÔÓ¦500ms-100us
+  38          int8 OptionInSettings;                                     //ÉèÖÃ½çÃæµÄÑ¡ÏîÐòºÅ, 0:TriS, 1:PlotMode, 2:LSB
+  39          int8 OptionInChart;                                        //Ö÷½çÃæµÄÑ¡ÏîÐòºÅ, 0:ScaleH, 1:ScaleV, 2:TriLe
+             -vel, 3:TriSlope, 4:TriMode
+  40          int8 TriMode;                                              //´¥·¢·½Ê½£¬2:µ¥´Î 1£ºÆÕÍ¨£¬0£º×Ô¶¯
+  41                                                                     //×Ô¶¯Ä£Ê½:Á¬Ðø²ÉÑù£¬ÓÃ»§ÊÖ¶¯Í£Ö¹
+  42                                                                     //ÆÕÍ¨£º´¥·¢ºóÍ£Ö¹²ÉÑù£¬²¢×Ô¶¯µÈ´ýÏÂ´Î´¥·¢
+  43                                                                     //µ¥´Î£º´¥·¢ºóÍ£Ö¹²ÉÑù£¬ÓÃ»§ÊÖ¶¯¿ªÊ¼µÈ´ýÏÂ´Î´¥·
+             -¢
+  44          uint16 ADCbuf[SAMPLE_NUM];                                 //»º´æÔ­Ê¼²ÉÑùÊý¾Ý
+  45          uint8 code *PlotModeTxt[] = {"Vect", "Dots"};              //»æÍ¼Ä£Ê½ÎÄ×Ö
+  46          uint8 code *TriModeTxt[] = {"Auto  ", "Normal", "Single"}; //´¥·¢·½Ê½ÎÄ×Ö
+  47          uint8 code *ScaleHTxt[] =                                  //Ë®Æ½±ê³ßÎÄ×Ö
+  48              {
+  49                  "500ms", //0
+  50                  "200ms", //1
+C51 COMPILER V9.59.0.0   GLOBAL                                                            05/13/2022 14:16:09 PAGE 2   
+
+  51                  "100ms", //2
+  52                  "50ms",  //3
+  53                  "20ms",  //4
+  54                  "10ms",  //5
+  55                  "5ms",   //6
+  56                  "2ms",   //7
+  57                  "1ms",   //8
+  58                  "500us", //9
+  59                  "200us", //10
+  60                  "100us"  //11
+  61          };
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =     94    ----
+   XDATA SIZE       =    513    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =     17    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

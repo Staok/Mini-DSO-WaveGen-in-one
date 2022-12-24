@@ -1,0 +1,11 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\delay.obj",
+".\Objects\adc_stc8.obj",
+".\Objects\settings.obj",
+".\Objects\ssd1306.obj",
+".\Objects\eeprom.obj",
+".\Objects\chart.obj",
+".\Objects\global.obj" 
+TO ".\Objects\Mini_DSO" 
+PRINT(".\Listings\Mini_DSO.m51") RAMSIZE(256) 

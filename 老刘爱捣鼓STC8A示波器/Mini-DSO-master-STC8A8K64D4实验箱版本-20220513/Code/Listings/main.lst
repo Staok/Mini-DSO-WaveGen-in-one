@@ -1,0 +1,990 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listing
+                    -s\main.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*
+   2              Mini DSO with STC MCU
+   3          
+   4              GitHub: https://github.com/CreativeLau/Mini-DSO
+   5              
+   6              Copyright (c) 2020 Creative Lau (creativelaulab@gmail.com)
+   7          
+   8              Permission is hereby granted, free of charge, to any person obtaining a copy
+   9              of this software and associated documentation files (the "Software"), to deal
+  10              in the Software without restriction, including without limitation the rights
+  11              to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  12              copies of the Software, and to permit persons to whom the Software is
+  13              furnished to do so, subject to the following conditions:
+  14          
+  15              The above copyright notice and this permission notice shall be included in all
+  16              copies or substantial portions of the Software.
+  17          
+  18              THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  19              IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  20              FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  21              AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  22              LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  23              OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  24              SOFTWARE.
+  25          
+  26               
+  27              Version: V0.3
+  28              MCU Type: STC8A8K64S4A12 @27MHz
+  29              YouTube Tutorial(First Version): https://youtu.be/c6gBv6Jcz7w
+  30              YouTube Tutorial(V0.3): https://youtu.be/-8PadlS7c4c
+  31              Instructable(First Version): https://www.instructables.com/id/Make-Your-Own-OscilloscopeMini-DSO-With-
+             -STC-MCU-Ea/
+  32              Instructable(V0.3): 
+  33              Any question please contact CreativeLauLab@gmail.com
+  34              YouTube Channel: https://www.youtube.com/c/CreativeLau
+  35          
+  36              Note:
+  37              How to Operation:
+  38                  Main Interface - Parameter Mode:
+  39                      Single Click Encoder: Run/Stop sampling
+  40                      Double Click Encoder: Enter Wave Scroll Mode
+  41                      Long Press Encoder: Enter Settings Interface
+  42                      Rotate Encoder: Adjust parameters
+  43                      Rotate Encoder While Pressing: Switch between options
+  44                      
+  45                  Main Interface - Wave Scroll Mode: 
+  46                      Single Click Encoder: Run/Stop sampling
+  47                      Double Click Encoder: Enter Parameter Mode
+  48                      Long Press Encoder: Enter Settings Interface
+  49                      Rotate Encoder: Scroll waveform horizontally (only available when sampling stopped)
+  50                      Rotate Encoder While Pressing: Scroll waveform vertically (only available when sampling stoppe
+             -d)
+  51                      
+  52                  Settings Interface:
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 2   
+
+  53                      Single Click Encoder: N/A
+  54                      Double Click Encoder: N/A
+  55                      Long Press Encoder: Return to Main Interface
+  56                      Rotate Encoder: Adjust parameters
+  57                      Rotate Encoder While Pressing: Switch between options
+  58          
+  59              Parameters in Main Interface:
+  60                  Seconds Per Division: "500ms", "200ms", "100ms", "50ms", "20ms", "10ms","5ms", "2ms", "1ms", "500u
+             -s", "200us", "100us"(100us only available in Auto Trigger Mode)
+  61                  Voltage Range: Maximum voltage is 30V. Rotate Encoder clockwise continuous to enter auto range. Ro
+             -tate Encoder anticlockwise to enter manual range. 
+  62                  Trigger Level: Set trigger voltage level. The trigger position will be put at the center of chart.
+             - 
+  63                                 You should set a correct Trigger Level in Single and Normal Trigger Mode in order t
+             -o capture the waveform.
+  64                  Trigger Slope: Trigger on Rising or Falling Edge. 
+  65                                 You should set a correct Trigger Slop in Single and Normal Trigger Mode in order to
+             - capture the waveform.
+  66                  Trigger Mode:
+  67                      Auto:   Sweep continuous, indicator always on. Single click the encoder to stop or run samplin
+             -g. 
+  68                              If triggered, the waveform will be shown on the display and the trigger position will 
+             -be put at the center of chart. 
+  69                              Otherwise, the waveform will scroll irregular, and 'Fail' will be shown on the display
+             -.
+  70                      Normal: When complete pre-sampling, you can input signal. If triggered, waveform shown on the 
+             -display and waiting for new trigger. 
+  71                              If no new trigger, the waveform will be kept.
+  72                      Single: When complete pre-sampling, you can input signal. If triggered, waveform shown on disp
+             -lay and stop sampling. 
+  73                              User need to single click Encoder to start next sampling.
+  74                      For Normal Mode and Single Mode, be sure the trigger level has been adjusted correctly, otherw
+             -ise no waveform will be shown on the display.
+  75          
+  76              Status in Main Interface:
+  77                  'Run': Sampling Running.
+  78                  'Stop': Sampling Stopped.
+  79                  'Fail': The Trigger Level beyond the waveform in Auto Trigger Mode.
+  80                  'Auto': Auto Voltage Range.
+  81                              
+  82              Parameters in Settings Interface:
+  83                  PMode(Plot Mode): Show waveform in Vector or Dots.
+  84                  LSB(Sampling Coefficient): 100 times of voltage dividing coefficient. e.g. the resistor for voltag
+             -e dividing is 10k and 2k, calculate the voltage dividing coefficient (10+2)/2=6. Get the LSB=6x100=600.
+  85                  BRT(Brightness): Adjust OLED Brightness
+  86          
+  87              Saving Settings: When exit settings interface, all parameters in settings and main interface will be s
+             -aved in EEPROM.
+  88          
+  89              Indicator:
+  90              Generally, the indicator on means the sampling is running. 
+  91              The more important use is in Single and Normal Trigger Mode, before get into the trigger stage, pre-sa
+             -mpling is required. 
+  92              The indicator will not on during pre-sampling stage. We should not input signal until the indicator co
+             -mes on. 
+  93              The longer time scale selected, the longer waiting time of pre-sampling.
+  94          
+  95              2020-04-30 Update
+  96              1. Add Single Sweep and Normal Sweep function. Set trigger value to catch the waveform mutation.
+  97              2. According to datasheet, set ADC port to high-impedance.
+  98          
+  99              2020-05-3 Update
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 3   
+
+ 100              1. Show frequency of waveform.
+ 101              2. Scroll waveform horizontally/vertically with EC11 Encoder.
+ 102              3. Zoom waveform vertically with EC11 Encoder.
+ 103              4. The trigger level could be customized.
+ 104          
+ 105              ¼òÒ×Ê¾²¨Æ÷
+ 106              °æ±¾£ºV0.3
+ 107              ×÷Õß£ºÀÏÁõ°®µ·¹Ä
+ 108              µ¥Æ¬»úĞÍ£ºSTC8A8K64D4 @27MHz
+ 109              ÈÎºÎÎÊÌâÇëÁªÏµCreativeLauLab@gmail.com
+ 110              ÀÏÁõ°®µ·¹Ä£¨È«ÍøÍ¬Ãû£©ÆÚ´ıÄúµÄ¹Ø×¢£¡
+ 111              BÕ¾½Ì³Ì£¨³õ°æ£©£ºhttps://www.bilibili.com/video/BV1ai4y1t79R
+ 112              BÕ¾½Ì³Ì£¨V0.3£©£ºhttps://www.bilibili.com/video/BV1ai4y1t79R
+ 113              ÓÍ¹ÜÆµµÀ: https://www.youtube.com/c/CreativeLau
+ 114          
+ 115              ²Ù×÷ËµÃ÷£º
+ 116                  Ö÷½çÃæ-Ñ¡ÏîÉèÖÃÄ£Ê½£º
+ 117                      µ¥»÷±àÂëÆ÷£ºÇĞ»»¿ªÊ¼/ÔİÍ£²ÉÑù
+ 118                      Ë«»÷±àÂëÆ÷£ºÇĞ»»²¨ĞÎË®Æ½¹ö¶¯Ä£Ê½/Ñ¡ÏîÉèÖÃÄ£Ê½
+ 119                      ³¤°´±àÂëÆ÷£º½øÈëÉèÖÃ½çÃæ
+ 120                      Ğı×ª±àÂëÆ÷£ºĞŞ¸Äµ±Ç°²ÎÊı
+ 121                      °´ÏÂÍ¬Ê±Ğı×ª±àÂëÆ÷£ºÔÚ²ÎÊı¼äÇĞ»»
+ 122                      
+ 123                  Ö÷½çÃæ-²¨ĞÎË®Æ½¹ö¶¯Ä£Ê½£º
+ 124                      µ¥»÷±àÂëÆ÷£ºÇĞ»»¿ªÊ¼/ÔİÍ£²ÉÑù
+ 125                      Ë«»÷±àÂëÆ÷£ºÇĞ»»²¨ĞÎË®Æ½¹ö¶¯Ä£Ê½/Ñ¡ÏîÉèÖÃÄ£Ê½
+ 126                      ³¤°´±àÂëÆ÷£º½øÈëÉèÖÃ½çÃæ
+ 127                      Ğı×ª±àÂëÆ÷£ºË®Æ½¹ö¶¯²¨ĞÎ£¨ÔÚÔİÍ£²ÉÑù×´Ì¬ÏÂÓĞĞ§£©
+ 128                      °´ÏÂÍ¬Ê±Ğı×ª±àÂëÆ÷£º´¹Ö±¹ö¶¯²¨ĞÎ£¨½öÔÚÔİÍ£²ÉÑù×´Ì¬ÏÂÓĞĞ§£©
+ 129                      
+ 130                  ÉèÖÃ½çÃæ£º
+ 131                      µ¥»÷±àÂëÆ÷£ºÎŞĞ§
+ 132                      Ë«»÷±àÂëÆ÷£ºÎŞĞ§
+ 133                      ³¤°´±àÂëÆ÷£º·µ»ØÖ÷½çÃæ
+ 134                      Ğı×ª±àÂëÆ÷£ºĞŞ¸Äµ±Ç°Ñ¡Ïî
+ 135                      °´ÏÂÍ¬Ê±Ğı×ª±àÂëÆ÷£ºÇĞ»»Ñ¡Ïî
+ 136          
+ 137              Ö÷½çÃæ²ÎÊı£º
+ 138                  ºáÖáÊ±¼äÇø¼ä£º"500ms", "200ms", "100ms", "50ms", "20ms", "10ms","5ms", "2ms", "1ms", "500us", "200
+             -us", "100us"(100us½öÔÚ×Ô¶¯´¥·¢Ä£Ê½ÏÂ¿ÉÓÃ)
+ 139                  ×İÖáµçÑ¹Çø¼ä£ºÉè¶¨µçÑ¹Á¿³ÌÉÏÏŞ£¬×î´ó30V£¬Ë³Ê±ÕëĞı×ª±àÂëÆ÷½«µçÑ¹ÉÏÏŞÉèÖÃÎª0Ôò½øÈë×Ô¶¯Á¿³Ì£¬ÄæÊ±ÕëĞı
+             -×ª½øÈëÊÖ¶¯Á¿³Ì
+ 140                  ´¥·¢Öµ£ºÉè¶¨´¥·¢µçÑ¹Öµ£¬´¥·¢Î»ÖÃ±»·ÅÔÚÆÁÄ»ÖĞĞÄ
+ 141                  ´¥·¢·½Ïò£ºÉÏÏÂ¼ıÍ·£¬·Ö±ğ´ú±íÉÏÉıÑØ´¥·¢ºÍÏÂ½µÑØ´¥·¢
+ 142                  ´¥·¢·½Ê½£º
+ 143                      Auto(×Ô¶¯´¥·¢)  £ºÁ¬Ğø²ÉÑù£¬Ö¸Ê¾µÆÊ¼ÖÕµãÁÁ£¬Í¨¹ıµ¥»÷±àÂëÆ÷¿ØÖÆÆôÍ££»´¥·¢³É¹¦Ê±£¬´¥·¢µãÎ»ÓÚÆÁÄ»
+             -ÖĞĞÄ£¬´¥·¢Ê§°ÜÔò²¨ĞÎÎŞ¹æÂÉ¹ö¶¯£¬ÆÁÄ»×ó²àÏÔÊ¾Fail±êÖ¾
+ 144                      Normal(ÆÕÍ¨´¥·¢)£ºµÈ´ıÔ¤²ÉÑù£¬´ıÖ¸Ê¾µÆÁÁÆğ±íÊ¾Ô¤²ÉÑù½áÊø£¬ÕâÊ±¿ÉÒÔÊäÈëĞÅºÅ£»
+ 145                                        ´¥·¢³É¹¦ºó£¬ÏÔÊ¾²¨ĞÎ£¬²¢¼ÌĞøµÈ´ıÏÂ´Î´¥·¢£»
+ 146                                        Èç¹ûÓĞĞÂµÄ´¥·¢³É¹¦£¬Ôò×Ô¶¯ÏÔÊ¾ĞÂµÄ²¨ĞÎ£¬ÈçÃ»ÓĞĞÂµÄ´¥·¢³É¹¦ÔòÆÁÄ»²¨ĞÎ±£³Ö²¢Ò»
+             -Ö±µÈ´ıÏÂ´Î´¥·¢£»
+ 147                                        Ğè×¢ÒâÉèÖÃÕıÈ·µÄ´¥·¢Öµ£¬·ñÔòÒ»Ö±´¦ÓÚµÈ´ı´¥·¢×´Ì¬£¬ÆÁÄ»²»»áÏÔÊ¾²¨ĞÎ
+ 148                      Single(µ¥´Î´¥·¢)£ºµÈ´ıÔ¤²ÉÑù£¬´ıÖ¸Ê¾µÆÁÁÆğ±íÊ¾Ô¤²ÉÑù½áÊø£¬ÕâÊ±¿ÉÒÔÊäÈëĞÅºÅ£»
+ 149                                        ´¥·¢³É¹¦ºó£¬ÏÔÊ¾²¨ĞÎ£¬²¢Í£Ö¹²ÉÑù£¬ĞèÓÃ»§µ¥»÷±àÂëÆ÷¿ªÊ¼ÏÂ´Î²ÉÑù    
+ 150                                        Ğè×¢ÒâÉèÖÃÕıÈ·µÄ´¥·¢Öµ£¬·ñÔòÒ»Ö±´¦ÓÚµÈ´ı´¥·¢×´Ì¬£¬ÆÁÄ»²»»áÏÔÊ¾²¨ĞÎ
+ 151                      
+ 152              Ö÷½çÃæ×´Ì¬ÏÔÊ¾£º    
+ 153                  Run£ºÕıÔÚ²ÉÑù
+ 154                  Stop£ºÍ£Ö¹²ÉÑù
+ 155                  Fail£º×Ô¶¯Ä£Ê½ÏÂ£¬´¥·¢Öµ³¬³ö²¨ĞÎ·¶Î§ÒıÆğ´¥·¢Ê§°Ü
+ 156                  Auto£º×Ô¶¯Á¿³Ì
+ 157                      
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 4   
+
+ 158              ÉèÖÃ½çÃæÑ¡Ïî£º
+ 159                  PMode(»æÍ¼Ä£Ê½)£º
+ 160                      Vector£º²¨ĞÎÒÔÊ¸Á¿ÏÔÊ¾
+ 161                      Dots  £º²¨ĞÎÒÔµãÕóÏÔÊ¾
+ 162                  LSB(²ÉÑùÏµÊı)£º·ÖÑ¹ÏµÊıµÄ100±¶£¬±ÈÈçÓÃ10k¼Ó2kµÄµç×è½øĞĞ·ÖÑ¹£¬·ÖÑ¹ÏµÊıÎª(10+2/2)=6£¬LSBÀíÂÛÈ¡ÖµÎª6x
+             -100=600£¬¸ù¾İÊµ¼Êµç×è¾«¶È½øĞĞÎ¢µ÷     
+ 163                  BRT£ºOLEDÁÁ¶È
+ 164          
+ 165              ±£´æÉèÖÃ£º³¤°´±àÂëÆ÷ÍË³öÉèÖÃ½çÃæÊ±£¬ÉèÖÃ½çÃæºÍÖ÷½çÃæµÄËùÓĞ²ÎÊı±»±£´æµ½EEPROM
+ 166          
+ 167              2020-04-30¸üĞÂ
+ 168              1. Ôö¼Óµ¥´Î´¥·¢ºÍÆÕÍ¨´¥·¢¹¦ÄÜ£¬¿É×Ô¶¨Òå´¥·¢µãÓÃÀ´²¶×½²¨ĞÎ±ä»¯
+ 169              2. °´ÕÕ¹æ¸ñÊéÒªÇó½«ADC²ÉÑù¶Ë¿ÚÉèÖÃÎª¸ß×èÊäÈë
+ 170              2020-5-3¸üĞÂ
+ 171              1. Ôö¼Ó²¨ĞÎÆµÂÊÏÔÊ¾
+ 172              2. Ê¹ÓÃ±àÂëÆ÷Ë®Æ½/´¹Ö±¹ö¶¯²¨ĞÎ
+ 173              3. Ê¹ÓÃ±àÂëÆ÷´¹Ö±Ëõ·Å²¨ĞÎ
+ 174              4. ÓÃ»§¿ÉÉè¶¨´¥·¢µçÆ½
+ 175              2022-5-13¸üĞÂ
+ 176              1. Ôö¼Ó²¨ĞÎÆµÂÊÏÔÊ¾
+ 177              2. Ê¹ÓÃ±àÂëÆ÷Ë®Æ½/´¹Ö±¹ö¶¯²¨ĞÎ
+ 178              3. Ê¹ÓÃ±àÂëÆ÷´¹Ö±Ëõ·Å²¨ĞÎ
+ 179              4. ÓÃ»§¿ÉÉè¶¨´¥·¢µçÆ½
+ 180          */
+ 181          
+ 182          #include <reg51.h>
+ 183          #include "global.h"
+ 184          #include "delay.h"
+ 185          #include "adc_stc8.h"
+ 186          #include "config_stc.h"
+ 187          #include "settings.h"
+ 188          #include "chart.h"
+ 189          #include "ssd1306.h"
+ 190          
+ 191          // #include "uart.h"
+ 192          // #include "stdio.h"
+ 193          
+ 194          #define VBAT_UPDATE_FREQ 40 //µç³ØµçÑ¹ĞÅÏ¢µÄ¸üĞÂÆµÂÊ VBAT_UPDATE_FREQ*25ms
+ 195          #define VBAT_LSB 600        //µç³ØµçÑ¹²ÉÑù·ÖÑ¹ÏµÊı*100
+ 196          #define INT_0 0             //Íâ²¿ÖĞ¶Ï0ĞòºÅ£¬±àÂëÆ÷Ğı×ª
+ 197          #define INT_1 2             //Íâ²¿ÖĞ¶Ï1ĞòºÅ£¬±àÂëÆ÷°´ÏÂ
+ 198          #define TIMER_0 1           //¶¨Ê±Æ÷0ÖĞ¶ÏĞòºÅ
+ 199          
+ 200          #define KEY_TIMER 30        //°´¼ü³ÖĞø¼ì²âÊ±¼ä(ms)
+ 201          
+ 202          sbit KEY1 = P3 ^ 2;
+ 203          sbit KEY2 = P3 ^ 3;
+ 204          sbit KEY3 = P3 ^ 4;
+ 205          sbit KEY4 = P3 ^ 5;
+ 206          
+ 207          uint16 Key1_cnt;
+ 208          uint16 Key2_cnt;
+ 209          uint16 Key3_cnt;
+ 210          uint16 Key4_cnt;
+ 211          bit Key1_Flag;
+ 212          bit Key2_Flag;
+ 213          bit Key3_Flag;
+ 214          bit Key4_Flag;
+ 215          bit Key4_Short_Flag;
+ 216          bit Key4_Long_Flag;
+ 217          
+ 218          //bit Key1_Function;
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 5   
+
+ 219          //bit Key2_Function;
+ 220          //bit Key3_Function;
+ 221          //bit Key4_Short_Function;
+ 222          //bit Key4_Long_Function;
+ 223          
+ 224          void KeyScan(void);
+ 225          
+ 226          void init()
+ 227          {
+ 228   1          InSettings = 0;         //³õÊ¼»¯¿ª»ú½çÃæ
+ 229   1          OptionInSettings = 0;   //³õÊ¼»¯ÉèÖÃ½çÃæµÄÑ¡Ïî±àºÅ
+ 230   1          OptionInChart = 0;      //³õÊ¼»¯Ö÷½çÃæµÄÑ¡Ïî±êºÅ
+ 231   1          WaveScroll = 0;         //ÇåÁã²¨ĞÎ¹ö¶¯±êÖ¾
+ 232   1          OptionChanged = 0;      //ÇåÁãÉèÖÃĞŞ¸Ä±êÖ¾
+ 233   1          ADCRunning = 1;         //ÖÃÎ»²ÉÑù±êÖ¾
+ 234   1          ADCInterrupt = 0;       //ÇåÁãADCÖĞ¶Ï±êÖ¾
+ 235   1          ADCComplete = 0;        //ÇåÁãADCÍê³É±êÖ¾
+ 236   1          WaveUpdate = 0;         //ÇåÁã²¨ĞÎ¸üĞÂ±êÖ¾
+ 237   1          ClearWave = 0;          //ÇåÁãÇå³ı²¨ĞÎ±êÖ¾
+ 238   1          ClearDisplay = 1;       //ÖÃÎ»Çå¿ÕÆÁÄ»±êÖ¾
+ 239   1          EC11PressAndRotate = 0; //ÇåÁã±àÂëÆ÷Ğı×ª±êÖ¾
+ 240   1          UpdateVbat = 0;         //ÇåÁã²ÉÑùµç³ØµçÑ¹±êÖ¾
+ 241   1          ADCComplete = 0;        //ÇåÁãADCÍê³É²ÉÑù±êÖ¾
+ 242   1          WaveFreq = 0;           //ÇåÁã²¨ĞÎÆµÂÊ
+ 243   1          TriPos = 50;            //³õÊ¼»¯´¥·¢µãÎ»ÖÃ
+ 244   1          TriPosOffset = 0;       //³õÊ¼»¯´¥·¢µãÆ«ÒÆÁ¿
+ 245   1          TriFail = 0;            //ÇåÁã´¥·¢Ê§°Ü±êÖ¾
+ 246   1          VMax = 0;               //ÇåÁã²¨ĞÎµçÑ¹×î´óÖµ
+ 247   1          VMin = 0;               //ÇåÁã²¨ĞÎµçÑ¹×îĞ¡Öµ
+ 248   1          WaveLengthSumNum = 0;   //ÇåÁã²¨ĞÎ³¤¶ÈÇóºÍ´ÎÊı
+ 249   1          WaveLengthSum = 0;      //ÇåÁã²¨ĞÎ³¤¶ÈÇóºÍ
+ 250   1      
+ 251   1          /* ²¨ĞÎ¹ö¶¯Ä£Ê½ÏÂÕıÔÚ²ÉÑùÔò½ûÓÃÍâ²¿ÖĞ¶Ï0£¨±àÂëÆ÷Ğı×ª£©
+ 252   1             Disable external interrupt 0(Encoder rotation) in waveform scroll mode when sampling*/
+ 253   1      //    if (ADCRunning && WaveScroll)
+ 254   1      //        EX0 = 0;
+ 255   1      
+ 256   1          /* »ñÈ¡ÄÚ²¿²Î¿¼µçÑ¹Öµ
+ 257   1             Get internal reference voltage */
+ 258   1          BGV = GetBGV();
+ 259   1      }
+ 260          
+ 261          void runWhenInSettrings()
+ 262          {
+ 263   1          P_Ready = 0;
+ 264   1          ClearDisplay = 1;
+ 265   1          while (InSettings)
+ 266   1          {
+ 267   2              /* ¸üĞÂµç³ØµçÑ¹ĞÅÏ¢
+ 268   2                 Update voltage infor of battery */
+ 269   2              if (UpdateVbat)
+ 270   2              {
+ 271   3                  UpdateVbat = 0;
+ 272   3                  VBat = GetVoltage(ADC_BAT, VBAT_LSB);
+ 273   3              }
+ 274   2      
+ 275   2              /* ¸üĞÂÆÁÄ»ÁÁ¶È
+ 276   2                 Update OLED Brightness */
+ 277   2              if (OLED_BrightnessChanged)
+ 278   2              {
+ 279   3                  OLED_BrightnessChanged = 0;
+ 280   3                  OLED_Write_Command(0x81);
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 6   
+
+ 281   3                  OLED_Write_Command(OLED_Brightness * 10);
+ 282   3              }
+ 283   2      
+ 284   2              /* ¸üĞÂ²ÎÊı
+ 285   2                 Update parameters */
+ 286   2              if (DisplayUpdate)
+ 287   2              {
+ 288   3                  DisplayUpdate = 0;
+ 289   3                  PlotSettings();
+ 290   3                  OLED_Display();
+ 291   3              }
+ 292   2          }
+ 293   1      
+ 294   1          /* ±£´æÉèÖÃ
+ 295   1             Save Settings */
+ 296   1          EA = 0;
+ 297   1          if (OptionChanged)
+ 298   1          {
+ 299   2              OptionChanged = 0;
+ 300   2              ClearDisplay = 0;
+ 301   2              /* ±£´æÉèÖÃ²¢ÏÔÊ¾±£´æ×´Ì¬
+ 302   2                 Save settings and display saving status*/
+ 303   2              PlotSaveStatus(Save_Options());
+ 304   2              OLED_Display();
+ 305   2              Delay1000ms();
+ 306   2          }
+ 307   1      
+ 308   1          /* ÍË³ösettingsºóË¢ĞÂÆÁÄ»
+ 309   1             Redraw display after exit settings */
+ 310   1          ClearDisplay = 1;
+ 311   1          PlotChart();
+ 312   1          OLED_Display();
+ 313   1      //    IE0 = 0;
+ 314   1      //    IE1 = 0;
+ 315   1          EA = 1;
+ 316   1      }
+ 317          
+ 318          /*
+ 319              ADCRuning=1
+ 320              |   WaveUpdate=1
+ 321              |   |       ClearWave=1
+ 322              |   |       ClearWave=0
+ 323              |   WaveUpdate=0
+ 324              ADCRuning=0
+ 325                  DisplayUpdate=1
+ 326                      WaveUpdate=1
+ 327                      |   ClearWave=1
+ 328                      |   ClearWave=0
+ 329                      WaveUpdate=0
+ 330          */
+ 331          void runWhenADCInterrupt()
+ 332          {
+ 333   1          ADCInterrupt = 0;
+ 334   1          P_Ready = 0;
+ 335   1      
+ 336   1          /* ADC²ÉÑùÔËĞĞ
+ 337   1             ADC Sampling Running */
+ 338   1          if (ADCRunning)
+ 339   1          {
+ 340   2      //        EX0 = 0;
+ 341   2      
+ 342   2              if (WaveUpdate)
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 7   
+
+ 343   2              {
+ 344   3                  WaveUpdate = 0;
+ 345   3                  ClearDisplay = 1;
+ 346   3      
+ 347   3                  /* Çå¿Õ²¨ĞÎ»º´æ
+ 348   3                     Clear waveform in buffer*/
+ 349   3                  if (ClearWave)
+ 350   3                  {
+ 351   4                      ClearWave = 0;
+ 352   4                      memset(ADCbuf, 0x00, SAMPLE_NUM * 2);
+ 353   4                      WaveFreq = 0;
+ 354   4                      TriFail = 0;
+ 355   4                      VMax = 0;
+ 356   4                      VMin = 0;
+ 357   4                      PlotChart();
+ 358   4                  }
+ 359   3                  /* ÏÔÊ¾»º´æÖĞµÄ²¨ĞÎ
+ 360   3                     Display waveform in buffer*/
+ 361   3                  else
+ 362   3                  {
+ 363   4                      AnalyseData();
+ 364   4                      PlotChart();
+ 365   4                      PlotWave();
+ 366   4                  }
+ 367   3              }
+ 368   2              else
+ 369   2              {
+ 370   3                  ClearDisplay = 0;
+ 371   3                  PlotChart();
+ 372   3              }
+ 373   2              OLED_Display();
+ 374   2      
+ 375   2              /* ADCRuningºÍWaveScrollÍ¬Ê±ÖÃÎ»Ê±£¬²»¿ªÆôÍâ²¿ÖĞ¶Ï0£¨±àÂëÆ÷Ğı×ª£©
+ 376   2                 Not to enable external interrupt 0(Encoder Rotation) when both of ADCRunning and WaveScroll set
+             -. */
+ 377   2      //        if (!WaveScroll)
+ 378   2      //        {
+ 379   2      //            IE0 = 0;
+ 380   2      //            EX0 = 1;
+ 381   2      //        }
+ 382   2          }
+ 383   1      
+ 384   1          /* ADC²ÉÑùÍ£Ö¹
+ 385   1             ADC Sampling Stopped */
+ 386   1          else
+ 387   1          {
+ 388   2              while (!ADCRunning && !InSettings)
+ 389   2              {
+ 390   3                  if (DisplayUpdate)
+ 391   3                  {
+ 392   4      //                EX0 = 0;
+ 393   4                      DisplayUpdate = 0;
+ 394   4                      if (WaveUpdate)
+ 395   4                      {
+ 396   5                          WaveUpdate = 0;
+ 397   5                          /* ·ÖÎö»º´æÖĞÍê³É²ÉÑùµÄ²ÉÑùÊı¾İ
+ 398   5                             Analyse completed sampling data in buffer */
+ 399   5                          AnalyseData();
+ 400   5                          ClearDisplay = 1;
+ 401   5      
+ 402   5                          /* Çå¿ÕÆÁÄ»£¬»æÖÆ²¨ĞÎ
+ 403   5                             Clear display and draw waveform */
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 8   
+
+ 404   5                          if (ScaleH == ScaleH_tmp)
+ 405   5                          {
+ 406   6                              /* ²ÉÑùµãÊıÓĞÏŞ£¬²»Ö§³ÖºáÏòËõ·Å²¨ĞÎ£¬Ö»ÓĞÊ±¼äÇø¼äÓëÍê³É²ÉÑùµÄÊ±¼äÇø¼äÏàÍ¬²Å»æÖÆ²¨Ğ
+             -Î
+ 407   6                                 Since the sampling points limitation, scaling waveform along horizontal is not 
+             -support.
+ 408   6                                 Show waveform only when time scale is same as that when sampling completed */
+ 409   6                              PlotChart();
+ 410   6                              PlotWave();
+ 411   6                          }
+ 412   5      
+ 413   5                          /* Çå¿ÕÆÁÄ»£¬²»»æÖÆ²¨ĞÎ
+ 414   5                             Clear display and no waveform */
+ 415   5                          else
+ 416   5                          {
+ 417   6                              WaveFreq = 0; //ÇåÁãWaveFreq£¬»æÖÆ½çÃæÊ±£¬ÆµÂÊÎ»ÖÃ»áÏÔÊ¾****Hz
+ 418   6                              PlotChart();
+ 419   6                          }
+ 420   5                      }
+ 421   4                      /* Ö»¸üĞÂÆÁÄ»ÉÏµÄ²ÎÊı£¬²¨ĞÎ²»±ä
+ 422   4                         Update parameters on display only, keep waveform */
+ 423   4                      else
+ 424   4                      {
+ 425   5                          ClearDisplay = 0;
+ 426   5                          PlotChart();
+ 427   5                      }
+ 428   4      
+ 429   4                      OLED_Display();
+ 430   4      //                IE0 = 0;
+ 431   4      //                EX0 = 1;
+ 432   4                  }
+ 433   3              }
+ 434   2          }
+ 435   1      }
+ 436          
+ 437          void runWhenADCComplete()
+ 438          {
+ 439   1          /*  ADC²ÉÑùÍê³É - µ¥´Î´¥·¢
+ 440   1              ADC Sampling Complete - Single Trigger Mode */
+ 441   1          if (TriMode == 2)
+ 442   1          {
+ 443   2      //        EX0 = 0;
+ 444   2              ADCInterrupt = 1;
+ 445   2              DisplayUpdate = 0;
+ 446   2              WaveUpdate = 0;
+ 447   2              ADCRunning = 0; //ÇåÁãADCÔËĞĞ±êÖ¾£¬Í£Ö¹²ÉÑù
+ 448   2              AnalyseData();
+ 449   2              ClearDisplay = 1;
+ 450   2              PlotChart();
+ 451   2              PlotWave();
+ 452   2              OLED_Display();
+ 453   2      //        IE0 = 0;
+ 454   2      //        EX0 = 1;
+ 455   2          }
+ 456   1      
+ 457   1          /*  ADC²ÉÑùÍê³É - ×Ô¶¯´¥·¢»òÆÕÍ¨´¥·¢
+ 458   1              ADC Sampling Complete - Auto or Normal Trigger Mode */
+ 459   1          else
+ 460   1          {
+ 461   2              //EX0 = 0;
+ 462   2              ClearDisplay = 1; //ÖÃÎ»Çå¿ÕÆÁÄ»±êÖ¾
+ 463   2              AnalyseData();    //·ÖÎö²ÉÑùÊı¾İ
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 9   
+
+ 464   2              PlotChart();      //»æÖÆÖ÷½çÃæ
+ 465   2              PlotWave();       //»æÖÆ²¨ĞÎ
+ 466   2              OLED_Display();
+ 467   2              //IE0 = 0;
+ 468   2              //EX0 = 1;
+ 469   2          }
+ 470   1      }
+ 471          
+ 472          #define Timer1_Reload   (65536UL -(27000000UL / 1000))       //Timer 1 ÖĞ¶ÏÆµÂÊ, 1000´Î/Ãë
+ 473          void Timer1Init(void)           //1ºÁÃë@27.000MHz
+ 474          {
+ 475   1              AUXR |= 0x40;           //¶¨Ê±Æ÷Ê±ÖÓ1TÄ£Ê½
+ 476   1              TMOD &= 0x0F;           //ÉèÖÃ¶¨Ê±Æ÷Ä£Ê½
+ 477   1      //      TL1 = 0x88;             //ÉèÖÃ¶¨Ê±³õÊ¼Öµ
+ 478   1      //      TH1 = 0x96;             //ÉèÖÃ¶¨Ê±³õÊ¼Öµ
+ 479   1              TH1 = (uint8)(Timer1_Reload / 256);
+ 480   1              TL1 = (uint8)(Timer1_Reload % 256);
+ 481   1              TF1 = 0;                //Çå³ıTF1±êÖ¾
+ 482   1          ET1 = 1;            //ÔÊĞíÖĞ¶Ï
+ 483   1              TR1 = 1;                //¶¨Ê±Æ÷1¿ªÊ¼¼ÆÊ±
+ 484   1      }
+ 485          
+ 486          /* ³ÌĞòÈë¿Ú
+ 487             Program Entry */
+ 488          void main()
+ 489          {
+ 490   1          P_SW2 |= 0x80;  //XFR·ÃÎÊÊ¹ÄÜ
+ 491   1          
+ 492   1          /* ½«ADC¶Ë¿ÚP0.4£¬P0.6ÉèÖÃÎª¸ß×è
+ 493   1             Set ADC port P0.4, P0.6 as high-impedance */
+ 494   1      //    P0M1 |= 0x50;
+ 495   1      //    P0M0 &= ~0x50;
+ 496   1          P0M1 = 0x50;
+ 497   1          P0M0 = 0x00;
+ 498   1      
+ 499   1          /* ÉèÖÃÖ¸Ê¾µÆ¶Ë¿ÚP1.1ÎªÍÆÍìÊä³ö
+ 500   1             Set indicator port P1.1 as push-pull output */
+ 501   1      //    P1M1 &= ~0x02;
+ 502   1      //    P1M0 |= 0x02;
+ 503   1          P1M1 = 0x00;
+ 504   1          P1M0 = 0x02;
+ 505   1      
+ 506   1          /* ÉèÖÃ±àÂëÆ÷¶Ë¿ÚP3.2£¬P3.3£¬P3.4Îª×¼Ë«Ïò
+ 507   1             Set Encoder port P3.2, P3.3, P3.4 as quasi bidirectional */
+ 508   1      //    P3M1 &= ~0x1C;
+ 509   1      //    P3M0 &= ~0x1C;
+ 510   1          P3M1 = 0x00;
+ 511   1          P3M0 = 0x00;
+ 512   1      
+ 513   1          /* ÉèÖÃOLED¶Ë¿ÚP2.3£¬P2.4£¬P2.5£¬P2.6£¬P2.7Îª×¼Ë«Ïò
+ 514   1             Set OLED port P2.3, P2.4, P2.5, P2.6 as quasi bidirectional */
+ 515   1      //    P2M1 &= ~0xF8;
+ 516   1      //    P2M0 &= ~0xF8;
+ 517   1          P2M1 = 0x00;
+ 518   1          P2M0 = 0x00;
+ 519   1      
+ 520   1          /* ÉèÖÃÖ¸Ê¾µÆ¶Ë¿ÚP4.0ÎªÍÆÍìÊä³ö
+ 521   1             Set indicator port P4.0 as push-pull output */
+ 522   1      //    P4M1 = 0x00;
+ 523   1      //    P4M0 = 0x01;
+ 524   1      //    P40 = 1;  //P40½Å×÷ÎªOLEDµçÔ´½Å
+ 525   1      
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 10  
+
+ 526   1          /* ±àÂëÆ÷Ğı×ªÍâ²¿ÖĞ¶Ï 
+ 527   1             Interrupt for rotating of Encoder */
+ 528   1      //    IT0 = 0; //Íâ²¿ÖĞ¶Ï0´¥·¢·½Ê½£¬ÉÏÉıÑØºÍÏÂ½µÑØ
+ 529   1      //    PX0 = 1; //Íâ²¿ÖĞ¶Ï0¸ßÓÅÏÈ¼¶£¬¿É´ò¶Ï°´¼üÖĞ¶Ï£¬ÓÃÓÚÅĞ¶Ï°´ÏÂÍ¬Ê±Ğı×ª
+ 530   1      //    EX0 = 1; //¿ªÆôÍâ²¿ÖĞ¶Ï0
+ 531   1      
+ 532   1          /* ±àÂëÆ÷°´¼üÍâ²¿ÖĞ¶Ï 
+ 533   1             Interrupt for clicking of Encoder */
+ 534   1      //    IT1 = 1; //Íâ²¿ÖĞ¶Ï1´¥·¢·½Ê½£¬ÏÂ½µÑØ
+ 535   1      //    PX1 = 0; //Íâ²¿ÖĞ¶Ï1µÍÓÅÏÈ¼¶
+ 536   1      //    EX1 = 1; //¿ªÆôÍâ²¿ÖĞ¶Ï1
+ 537   1      
+ 538   1          /* ¶¨Ê±Æ÷0£¬Îª¸üĞÂµç³ØµçÑ¹ĞÅÏ¢¼ÆÊ±
+ 539   1             Timer 0, for updating voltage of battery */
+ 540   1          AUXR &= 0x7F; //¶¨Ê±Æ÷Ê±ÖÓ12TÄ£Ê½
+ 541   1          TMOD &= 0xF0; //ÉèÖÃ¶¨Ê±Æ÷Ä£Ê½
+ 542   1          TL0 = 0x46;   //ÉèÖÃ¶¨Ê±³õÖµ //27MHz£¬25ms
+ 543   1          TH0 = 0x24;   //ÉèÖÃ¶¨Ê±³õÖµ
+ 544   1          TF0 = 0;      //Çå³ıTF0±êÖ¾
+ 545   1          ET0 = 1;      //ÔÊĞí¶¨Ê±Æ÷0ÖĞ¶Ï
+ 546   1          
+ 547   1          Timer1Init();
+ 548   1      
+ 549   1          IAP_TPS = 27; //ÉèÖÃEEPROM²Ù×÷Ê±¼ä 27MHz/1000000
+ 550   1      
+ 551   1          /* ¿ª×ÜÖĞ¶Ï
+ 552   1             Enable global interrupt */
+ 553   1          EA = 1;
+ 554   1      
+ 555   1          //UartInit();
+ 556   1      
+ 557   1          Read_Options();
+ 558   1          init();
+ 559   1          OLED_Init();
+ 560   1          OLED_SetFontWidth(6);
+ 561   1          PlotChart();
+ 562   1          OLED_Display();
+ 563   1      
+ 564   1          while (1)
+ 565   1          {
+ 566   2              P_Ready = 0;
+ 567   2      
+ 568   2              /* ²ÉÑù²¨ĞÎ
+ 569   2                 Sampling*/
+ 570   2              GetWaveData();
+ 571   2              
+ 572   2              /* ½øÈëÉèÖÃ½çÃæ
+ 573   2                 Enter Settings Interface */
+ 574   2              if (InSettings)
+ 575   2              {
+ 576   3                  runWhenInSettrings();
+ 577   3              }
+ 578   2      
+ 579   2              /* ADC²ÉÑùÖĞ¶Ï
+ 580   2                 ADC Sampling Interrupt */
+ 581   2              else if (ADCInterrupt)
+ 582   2              {
+ 583   3                  runWhenADCInterrupt();
+ 584   3              }
+ 585   2      
+ 586   2              /* ADC²ÉÑùÍê³É
+ 587   2                 ADC Sampling Complete */
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 11  
+
+ 588   2              else
+ 589   2              {
+ 590   3                  runWhenADCComplete();
+ 591   3              }
+ 592   2          }
+ 593   1      }
+ 594          
+ 595          #if 0
+              /* ·ÖÎö±àÂëÆ÷Ğı×ª
+                 Analyse Rotation of Encoder */
+              void Scan_EC11(void)
+              {
+                  /* ÑÓÊ±È¥¶¶¶¯
+                     Delay to remove jitter */
+                  Delay500us();
+              
+                  /* Õı×ª
+                     Clockwise */
+                  if (EC11_A != EC11_B)
+                  {
+                      Change_Val(1);
+                  }
+              
+                  /* ·´×ª
+                     Anticlockwise */
+                  else if (EC11_A == EC11_B)
+                  {
+                      Change_Val(0);
+                  }
+              }
+              
+              /* ±àÂëÆ÷Ğı×ªÖĞ¶Ï
+                 Interrput for Encoder Rotated */
+              void INT0_interrupt(void) interrupt INT_0
+              {
+                  Delay500us();
+              
+                  /* ±àÂëÆ÷ÊÇ·ñ±»°´ÏÂ
+                     Whether the Encoder is pressed */
+                  if (!EC11_KEY)
+                      EC11PressAndRotate = 1;
+                  else
+                      EC11PressAndRotate = 0;
+              
+                  Scan_EC11();
+                  ADCInterrupt = 1;
+                  DisplayUpdate = 1;
+                  IE1 = 0; //ÇåÁãÍâ²¿ÖĞ¶Ï1±êÖ¾Î»
+                  IE0 = 0; //ÇåÁãÍâ²¿ÖĞ¶Ï0±êÖ¾Î»
+              }
+              
+              /* ±àÂëÆ÷µã»÷ÖĞ¶Ï
+                 Interrput for Encoder Pressed */
+              void INT1_interrupt(void) interrupt INT_1
+              {
+                  Delay50ms();
+                  if (!EC11_KEY)
+                  {
+                      EC11PressAndRotate = 0;
+              
+                      /*  ³¤°´±àÂëÆ÷°´¼ü - ÇĞ»»Ö÷½çÃæºÍÉèÖÃ½çÃæ
+                          Long presse Encoder - Switch main interface and settings interface */
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 12  
+
+                      if (Delay800ms_Long_Press())
+                      {
+                          InSettings = ~InSettings;
+              
+                          /*  ½øÈëÉèÖÃ½çÃæ
+                              Enter Settings  */
+                          if (InSettings)
+                          {
+                              DisplayUpdate = 1;
+                              UpdateVbat = 1;
+                              TF0 = 0; //ÇåÁã¶¨Ê±Æ÷0Òç³ö±êÖ¾
+                              TR0 = 1; //¶¨Ê±Æ÷0¿ªÊ¼¼ÆÊ±£¬¿ªÊ¼µç³ØµçÑ¹ĞÅÏ¢¸üĞÂ¼ÆÊ±
+                              IE0 = 0; //ÇåÁãÍâ²¿ÖĞ¶Ï0ÖĞ¶Ï±êÖ¾
+                              EX0 = 1; //¿ªÆôÍâ²¿ÖĞ¶Ï0£¨±àÂëÆ÷Ğı×ª£©
+                          }
+              
+                          /*  »Øµ½Ö÷½çÃæ
+                              Retrurn to main interface   */
+                          else
+                          {
+                              TR0 = 0; //ÇåÁã¶¨Ê±Æ÷0Òç³ö±êÖ¾
+                              TF0 = 0; //¶¨Ê±Æ÷0Í£Ö¹¼ÆÊ±£¬Í£Ö¹µç³ØµçÑ¹ĞÅÏ¢¸üĞÂ¼ÆÊ±
+                              WaveFreq = 0;
+                              TriFail = 0;
+                              VMax = 0;
+                              VMin = 0;
+                              DisplayUpdate = 1;
+                              WaveUpdate = 1;
+                              ClearWave = 0;
+                          }
+                          ADCInterrupt = 1;
+                      }
+              
+                      /*  °´×¡±àÂëÆ÷Í¬Ê±Ğı×ª
+                          Rotate Encoder while pressing  */
+                      else if (EC11PressAndRotate)
+                      {
+                          /* ÓÉ±àÂëÆ÷Ğı×ªÖĞ¶ÏÖ´ĞĞ²Ù×÷
+                             Operations Performed by Interrupt of Encoder Rotation */
+                      }
+              
+                      /* Ë«»÷±àÂëÆ÷°´¼ü - ÔÚÖ÷½çÃæ£¬¹ö¶¯²¨ĞÎºÍÑ¡ÏîÄ£Ê½Ö®¼äÇĞ»»
+                         Double click Encoder - Switch between Waveform Scroll Mode and Parameter Mode in Main Interface
+             - */
+                      else if (Delay300ms_Double_Click())
+                      {
+                          /* Ö÷½çÃæ
+                             Main Interface*/
+                          if (!InSettings)
+                          {
+                              WaveScroll = ~WaveScroll;
+                              OptionChanged = 1;
+                              ADCInterrupt = 1;
+                              DisplayUpdate = 1;
+                              ClearWave = 0;
+                          }
+                      }
+              
+                      /*  µ¥»÷±àÂëÆ÷°´¼ü - ÔÚÖ÷½çÃæ£¬ÇĞ»»Stop/Run×´Ì¬
+                          Single click Encoder - Switch Run/Stop in main interface    */
+                      else if (!InSettings)
+                      {
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 13  
+
+                          EX0 = 0;
+                          ADCRunning = ~ADCRunning;
+                          if (ADCRunning)
+                          {
+                              WaveUpdate = 1;
+                              ClearWave = 1;
+                          }
+                          else
+                          {
+                              DisplayUpdate = 1;
+                              WaveUpdate = 1;
+                          }
+                          ADCInterrupt = 1;
+                          IE0 = 0;
+                          IE1 = 0;
+                      }
+                  }
+                  IE1 = 0;
+              }
+              #endif
+ 731          
+ 732          /* Îª¸üĞÂVbat¼ÆÊ±
+ 733             Timer for updating Vbat */
+ 734          void TIMER0_interrupt(void) interrupt TIMER_0
+ 735          {
+ 736   1          static uint8 n;
+ 737   1      
+ 738   1          if (++n >= VBAT_UPDATE_FREQ)
+ 739   1          {
+ 740   2              n = 0;
+ 741   2              UpdateVbat = 1;
+ 742   2              DisplayUpdate = 1;
+ 743   2          }
+ 744   1      }
+ 745          
+ 746          void TIMER1_interrupt(void) interrupt 3
+ 747          {
+ 748   1          KeyScan();
+ 749   1      }
+ 750          
+ 751          //========================================================================
+ 752          // º¯Êı: void KeyScan(void)
+ 753          // ÃèÊö: °´¼üÉ¨Ãèº¯Êı¡£
+ 754          // ²ÎÊı: none.
+ 755          // ·µ»Ø: none.
+ 756          // °æ±¾: VER1.0
+ 757          // ÈÕÆÚ: 2013-4-1
+ 758          // ±¸×¢: 
+ 759          //========================================================================
+ 760          void KeyScan(void)
+ 761          {
+ 762   1              //¶Ì°´°´¼ü
+ 763   1              if(!KEY1)
+ 764   1              {
+ 765   2                      if(!Key1_Flag)
+ 766   2                      {
+ 767   3                              Key1_cnt++;
+ 768   3                              if(Key1_cnt >= KEY_TIMER)       //30ms·À¶¶
+ 769   3                              {
+ 770   4                                      Key1_Flag = 1;                  //ÉèÖÃ°´¼ü×´Ì¬£¬·ÀÖ¹ÖØ¸´´¥·¢
+ 771   4                      Change_Val(1);      /* Õı×ª  Clockwise */
+ 772   4      //                              Key1_Function = 1;
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 14  
+
+ 773   4                              }
+ 774   3                      }
+ 775   2              }
+ 776   1              else
+ 777   1              {
+ 778   2                      Key1_cnt = 0;
+ 779   2                      Key1_Flag = 0;
+ 780   2              }
+ 781   1      
+ 782   1              //¶Ì°´°´¼ü
+ 783   1              if(!KEY2)
+ 784   1              {
+ 785   2                      if(!Key2_Flag)
+ 786   2                      {
+ 787   3                              Key2_cnt++;
+ 788   3                              if(Key2_cnt >= KEY_TIMER)       //30ms·À¶¶
+ 789   3                              {
+ 790   4                                      Key2_Flag = 1;                  //ÉèÖÃ°´¼ü×´Ì¬£¬·ÀÖ¹ÖØ¸´´¥·¢
+ 791   4                      Change_Val(0);      /* ·´×ª  Anticlockwise */
+ 792   4      //                              Key2_Function = 1;
+ 793   4                              }
+ 794   3                      }
+ 795   2              }
+ 796   1              else
+ 797   1              {
+ 798   2                      Key2_cnt = 0;
+ 799   2                      Key2_Flag = 0;  //°´¼üÊÍ·Å
+ 800   2              }
+ 801   1      
+ 802   1              //µ¥´¿¶Ì°´°´¼ü
+ 803   1              if(!KEY3)
+ 804   1              {
+ 805   2                      if(!Key3_Flag)
+ 806   2                      {
+ 807   3                              Key3_cnt++;
+ 808   3                              if(Key3_cnt >= KEY_TIMER)       //30ms·À¶¶
+ 809   3                              {
+ 810   4                                      Key3_Flag = 1;                  //ÉèÖÃ°´¼ü×´Ì¬£¬·ÀÖ¹ÖØ¸´´¥·¢
+ 811   4      //                              Key3_Function = 1;
+ 812   4      
+ 813   4                      /* ÇĞ»»Ö÷½çÃæºÍÉèÖÃ½çÃæ - Switch main interface and settings interface */
+ 814   4                      InSettings = ~InSettings;
+ 815   4      
+ 816   4                      /*  ½øÈëÉèÖÃ½çÃæ
+ 817   4                          Enter Settings  */
+ 818   4                      if (InSettings)
+ 819   4                      {
+ 820   5                          DisplayUpdate = 1;
+ 821   5                          UpdateVbat = 1;
+ 822   5                          TF0 = 0; //ÇåÁã¶¨Ê±Æ÷0Òç³ö±êÖ¾
+ 823   5                          TR0 = 1; //¶¨Ê±Æ÷0¿ªÊ¼¼ÆÊ±£¬¿ªÊ¼µç³ØµçÑ¹ĞÅÏ¢¸üĞÂ¼ÆÊ±
+ 824   5                      }
+ 825   4      
+ 826   4                      /*  »Øµ½Ö÷½çÃæ
+ 827   4                          Retrurn to main interface   */
+ 828   4                      else
+ 829   4                      {
+ 830   5                          TR0 = 0; //ÇåÁã¶¨Ê±Æ÷0Òç³ö±êÖ¾
+ 831   5                          TF0 = 0; //¶¨Ê±Æ÷0Í£Ö¹¼ÆÊ±£¬Í£Ö¹µç³ØµçÑ¹ĞÅÏ¢¸üĞÂ¼ÆÊ±
+ 832   5                          WaveFreq = 0;
+ 833   5                          TriFail = 0;
+ 834   5                          VMax = 0;
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 15  
+
+ 835   5                          VMin = 0;
+ 836   5                          DisplayUpdate = 1;
+ 837   5                          WaveUpdate = 1;
+ 838   5                          ClearWave = 0;
+ 839   5                      }
+ 840   4                      ADCInterrupt = 1;
+ 841   4                              }
+ 842   3                      }
+ 843   2              }
+ 844   1              else
+ 845   1              {
+ 846   2                      Key3_cnt = 0;
+ 847   2                      Key3_Flag = 0;
+ 848   2              }
+ 849   1      
+ 850   1              //³¤°´¶Ì°´°´¼ü
+ 851   1              if(!KEY4)
+ 852   1              {
+ 853   2                      if(!Key4_Flag)
+ 854   2                      {
+ 855   3                              Key4_cnt++;
+ 856   3                              if(Key4_cnt >= 1000)            //³¤°´1s
+ 857   3                              {
+ 858   4                                      Key4_Short_Flag = 0;    //Çå³ı¶Ì°´±êÖ¾
+ 859   4                                      Key4_Long_Flag = 1;             //ÉèÖÃ³¤°´±êÖ¾
+ 860   4                                      Key4_Flag = 1;                          //ÉèÖÃ°´¼ü×´Ì¬£¬·ÀÖ¹ÖØ¸´´¥·¢
+ 861   4      //                              Key4_Long_Function = 1;
+ 862   4      
+ 863   4                      /* ÔÚÖ÷½çÃæ£¬¹ö¶¯²¨ĞÎºÍÑ¡ÏîÄ£Ê½Ö®¼äÇĞ»» - Switch between Waveform Scroll Mode and Paramete
+             -r Mode in Main Interface */
+ 864   4      
+ 865   4                      /* Ö÷½çÃæ
+ 866   4                         Main Interface*/
+ 867   4                      if (!InSettings)
+ 868   4                      {
+ 869   5                          WaveScroll = ~WaveScroll;
+ 870   5                          OptionChanged = 1;
+ 871   5                          ADCInterrupt = 1;
+ 872   5                          DisplayUpdate = 1;
+ 873   5                          ClearWave = 0;
+ 874   5                      }
+ 875   4                              }
+ 876   3                              else if(Key4_cnt >= KEY_TIMER)  //30ms·À¶¶
+ 877   3                              {
+ 878   4                                      Key4_Short_Flag = 1;            //ÉèÖÃ¶Ì°´±êÖ¾
+ 879   4                              }
+ 880   3                      }
+ 881   2              }
+ 882   1              else
+ 883   1              {
+ 884   2                      if(Key4_Short_Flag)                     //ÅĞ¶ÏÊÇ·ñ¶Ì°´
+ 885   2                      {
+ 886   3                              Key4_Short_Flag = 0;    //Çå³ı¶Ì°´±êÖ¾
+ 887   3      //                      Key4_Short_Function = 1;
+ 888   3      
+ 889   3                  /* ÔÚÖ÷½çÃæ£¬ÇĞ»»Stop/Run×´Ì¬ - Switch Run/Stop in main interface    */
+ 890   3                  if (!InSettings)
+ 891   3                  {
+ 892   4                      ADCRunning = ~ADCRunning;
+ 893   4                      if (ADCRunning)
+ 894   4                      {
+ 895   5                          WaveUpdate = 1;
+C51 COMPILER V9.59.0.0   MAIN                                                              05/13/2022 15:21:05 PAGE 16  
+
+ 896   5                          ClearWave = 1;
+ 897   5                      }
+ 898   4                      else
+ 899   4                      {
+ 900   5                          DisplayUpdate = 1;
+ 901   5                          WaveUpdate = 1;
+ 902   5                      }
+ 903   4                      ADCInterrupt = 1;
+ 904   4                  }
+ 905   3                      }
+ 906   2                      Key4_cnt = 0;
+ 907   2                      Key4_Flag = 0;  //°´¼üÊÍ·Å
+ 908   2              }
+ 909   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    900    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      9    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      6    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

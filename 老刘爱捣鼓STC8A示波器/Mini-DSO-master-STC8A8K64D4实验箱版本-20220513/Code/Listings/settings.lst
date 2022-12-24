@@ -1,0 +1,534 @@
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE SETTINGS
+OBJECT MODULE PLACED IN .\Objects\settings.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE settings.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Lis
+                    -tings\settings.lst) OBJECT(.\Objects\settings.obj)
+
+line level    source
+
+   1          /*
+   2              settings.c
+   3          
+   4              Settings Control and Parameter Adjusting
+   5          
+   6              Copyright (c) 2020 Creative Lau (creativelaulab@gmail.com)
+   7          
+   8              Permission is hereby granted, free of charge, to any person obtaining a copy
+   9              of this software and associated documentation files (the "Software"), to deal
+  10              in the Software without restriction, including without limitation the rights
+  11              to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  12              copies of the Software, and to permit persons to whom the Software is
+  13              furnished to do so, subject to the following conditions:
+  14          
+  15              The above copyright notice and this permission notice shall be included in all
+  16              copies or substantial portions of the Software.
+  17          
+  18              THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  19              IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  20              FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  21              AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  22              LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  23              OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  24              SOFTWARE.
+  25          
+  26          */
+  27          
+  28          #include "settings.h"
+  29          
+  30              //单片机速度限制，单次和普通触发的中间计算造成单片机无法完成100us区间计算
+  31              //MCU speed limitation result in the Single Sweep and Normal Sweep calculations could not complete in 
+             -100us time interval.
+  32              void
+  33              Check_MinTimeInterval()
+  34          {
+  35   1          if (TriMode)
+  36   1          {
+  37   2              if (ScaleH > SCALE_H_MAX - 1)
+  38   2                  ScaleH = SCALE_H_MAX - 1;
+  39   2          }
+  40   1          else
+  41   1          {
+  42   2              if (ScaleH > SCALE_H_MAX)
+  43   2                  ScaleH = SCALE_H_MAX;
+  44   2          }
+  45   1      }
+  46          
+  47          void change_ScaleH(bit i)
+  48          {
+  49   1          if (i)
+  50   1          {
+  51   2              ScaleH++;
+  52   2              Check_MinTimeInterval();
+  53   2          }
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 2   
+
+  54   1          else
+  55   1          {
+  56   2              ScaleH--;
+  57   2      
+  58   2              if (ScaleH < SCALE_H_MIN)
+  59   2                  ScaleH = SCALE_H_MIN;
+  60   2          }
+  61   1      }
+  62          
+  63          void change_TriggerValue(bit i)
+  64          {
+  65   1          if (i)
+  66   1          {
+  67   2              if (TriLevel >= 5000)
+  68   2                  TriLevel += 500;
+  69   2              else
+  70   2                  TriLevel += 100;
+  71   2      
+  72   2              if (TriLevel > MAX_V)
+  73   2                  TriLevel = MAX_V;
+  74   2          }
+  75   1          else
+  76   1          {
+  77   2              if (TriLevel <= 5000)
+  78   2                  TriLevel -= 100;
+  79   2              else
+  80   2                  TriLevel -= 500;
+  81   2      
+  82   2              if (TriLevel < MIN_V)
+  83   2                  TriLevel = MIN_V;
+  84   2          }
+  85   1      }
+  86          
+  87          void change_LSB(bit i)
+  88          {
+  89   1          if (i)
+  90   1          {
+  91   2              Lsb++;
+  92   2      
+  93   2              if (Lsb > LSB_MAX)
+  94   2                  Lsb = LSB_MAX;
+  95   2          }
+  96   1          else
+  97   1          {
+  98   2              Lsb--;
+  99   2      
+ 100   2              if (Lsb < LSB_MIN)
+ 101   2                  Lsb = LSB_MIN;
+ 102   2          }
+ 103   1      }
+ 104          
+ 105          void change_PlotMode()
+ 106          {
+ 107   1          PlotMode = ~PlotMode;
+ 108   1      }
+ 109          
+ 110          void change_TriMode(bit i)
+ 111          {
+ 112   1          if (i)
+ 113   1          {
+ 114   2              TriMode++;
+ 115   2      
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 3   
+
+ 116   2              if (TriMode > 2)
+ 117   2                  TriMode = 0;
+ 118   2          }
+ 119   1          else
+ 120   1          {
+ 121   2              TriMode--;
+ 122   2      
+ 123   2              if (TriMode < 0)
+ 124   2                  TriMode = 2;
+ 125   2          }
+ 126   1      }
+ 127          
+ 128          void change_TriPosOffset(bit i)
+ 129          {
+ 130   1          if (i)
+ 131   1          {
+ 132   2              TriPosOffset--;
+ 133   2              if (TriPosOffset + TriPos < ((CHART_H_MAX - CHART_H_MIN) >> 1))
+ 134   2                  TriPosOffset = ((CHART_H_MAX - CHART_H_MIN) >> 1) - TriPos;
+ 135   2          }
+ 136   1          else
+ 137   1          {
+ 138   2              TriPosOffset++;
+ 139   2              if (TriPosOffset + TriPos > SAMPLE_NUM - ((CHART_H_MAX - CHART_H_MIN) >> 1) - 1)
+ 140   2                  TriPosOffset = SAMPLE_NUM - ((CHART_H_MAX - CHART_H_MIN) >> 1) - 1 - TriPos;
+ 141   2          }
+ 142   1      }
+ 143          
+ 144          void change_OptionInChart(bit i)
+ 145          {
+ 146   1          if (i)
+ 147   1          {
+ 148   2              OptionInChart++;
+ 149   2      
+ 150   2              if (OptionInChart > 4)
+ 151   2                  OptionInChart = 0;
+ 152   2          }
+ 153   1          else
+ 154   1          {
+ 155   2              OptionInChart--;
+ 156   2      
+ 157   2              if (OptionInChart < 0)
+ 158   2                  OptionInChart = 4;
+ 159   2          }
+ 160   1      }
+ 161          
+ 162          void change_OptionInSettings(bit i)
+ 163          {
+ 164   1          if (i)
+ 165   1          {
+ 166   2              OptionInSettings++;
+ 167   2              if (OptionInSettings > 2)
+ 168   2                  OptionInSettings = 0;
+ 169   2          }
+ 170   1          else
+ 171   1          {
+ 172   2              OptionInSettings--;
+ 173   2              if (OptionInSettings < 0)
+ 174   2                  OptionInSettings = 2;
+ 175   2          }
+ 176   1      }
+ 177          
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 4   
+
+ 178          void change_RulerVMax(bit i)
+ 179          {
+ 180   1          if (i)
+ 181   1          {
+ 182   2              if (RulerVMax <= 1000)
+ 183   2              {
+ 184   3                  RulerVMax -= 100;
+ 185   3                  //RulerVMin += 100;
+ 186   3              }
+ 187   2              else
+ 188   2              {
+ 189   3                  RulerVMax -= 500;
+ 190   3                  //RulerVMin += 500;
+ 191   3              }
+ 192   2      
+ 193   2              if (RulerVMax <= RulerVMin)
+ 194   2                  ScaleV_Auto = 1;
+ 195   2          }
+ 196   1          else
+ 197   1          {
+ 198   2              ScaleV_Auto = 0;
+ 199   2              if (RulerVMax >= 1000)
+ 200   2              {
+ 201   3                  RulerVMax += 500;
+ 202   3                  //RulerVMin -= 500;
+ 203   3              }
+ 204   2              else
+ 205   2              {
+ 206   3                  RulerVMax += 100;
+ 207   3                  //RulerVMin -= 100;
+ 208   3              }
+ 209   2      
+ 210   2              if (RulerVMax > MAX_V)
+ 211   2                  RulerVMax = MAX_V;
+ 212   2      
+ 213   2              // if (RulerVMin < MIN_V)
+ 214   2              //     RulerVMin = MIN_V;
+ 215   2          }
+ 216   1      }
+ 217          
+ 218          void change_RulerV(bit i)
+ 219          {
+ 220   1          ScaleV_Auto = 0;
+ 221   1          if (i)
+ 222   1          {
+ 223   2              RulerVMax -= 100;
+ 224   2              RulerVMin -= 100;
+ 225   2              if (RulerVMin < MIN_V + 100)
+ 226   2              {
+ 227   3                  RulerVMax += 100;
+ 228   3                  RulerVMin = MIN_V;
+ 229   3              }
+ 230   2          }
+ 231   1          else
+ 232   1          {
+ 233   2              RulerVMax += 100;
+ 234   2              RulerVMin += 100;
+ 235   2              if (RulerVMax > MAX_V)
+ 236   2              {
+ 237   3                  RulerVMax = MAX_V;
+ 238   3                  RulerVMin -= 100;
+ 239   3              }
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 5   
+
+ 240   2          }
+ 241   1      }
+ 242          
+ 243          void change_OLED_Brightness(bit i)
+ 244          {
+ 245   1          if (i)
+ 246   1          {
+ 247   2              OLED_Brightness++;
+ 248   2              if (OLED_Brightness > BRIGHTNESS_MAX)
+ 249   2                  OLED_Brightness = BRIGHTNESS_MAX;
+ 250   2          }
+ 251   1          else
+ 252   1          {
+ 253   2              OLED_Brightness--;
+ 254   2              if (OLED_Brightness < BRIGHTNESS_MIN)
+ 255   2                  OLED_Brightness = BRIGHTNESS_MIN;
+ 256   2          }
+ 257   1          OLED_BrightnessChanged = 1;
+ 258   1      }
+ 259          
+ 260          void Change_Val(bit i)
+ 261          {
+ 262   1          /* 按下同时旋转编码器
+ 263   1             Rotating Encoder while pressing */
+ 264   1          if (EC11PressAndRotate)
+ 265   1          {
+ 266   2              //设置界面
+ 267   2              //In settings
+ 268   2              if (InSettings)
+ 269   2              {
+ 270   3                  change_OptionInSettings(i);
+ 271   3              }
+ 272   2      
+ 273   2              //波形滚动模式
+ 274   2              //In waveform scroll mode
+ 275   2              else if (WaveScroll)
+ 276   2              {
+ 277   3                  change_RulerV(i);
+ 278   3                  WaveUpdate = 1; //置位波形更新标志
+ 279   3              }
+ 280   2      
+ 281   2              //非波形滚动模式
+ 282   2              //Not in waveform scroll mode
+ 283   2              else
+ 284   2              {
+ 285   3                  change_OptionInChart(i);
+ 286   3                  //切换选项时，不清空波形
+ 287   3                  //Not to clear waveform when switch options
+ 288   3                  ClearWave = 0;
+ 289   3              }
+ 290   2          }
+ 291   1      
+ 292   1          /* 在设置界面旋转编码器
+ 293   1             Rotating Encoder in settings */
+ 294   1          else if (InSettings)
+ 295   1          {
+ 296   2              /* 调节绘图模式
+ 297   2                 Ajust Plot Mode */
+ 298   2              if (OptionInSettings == 0)
+ 299   2                  change_PlotMode();
+ 300   2      
+ 301   2              /* 调节LSB
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 6   
+
+ 302   2                 Adjust LSB */
+ 303   2              else if (OptionInSettings == 1)
+ 304   2                  change_LSB(i);
+ 305   2      
+ 306   2              /* 调节OLED_Brightness
+ 307   2                 Adjust OLED_Brightness */
+ 308   2              else if (OptionInSettings == 2)
+ 309   2                  change_OLED_Brightness(i);
+ 310   2      
+ 311   2              /* 置位设置保存标志
+ 312   2                 Options need to be saved */
+ 313   2              OptionChanged = 1;
+ 314   2          }
+ 315   1      
+ 316   1          /* 滚动波形模式下旋转编码器
+ 317   1             Rotate Encoder in waveform horizontal scroll mode */
+ 318   1          else if (WaveScroll)
+ 319   1          {
+ 320   2              change_TriPosOffset(i);
+ 321   2              WaveUpdate = 1; 
+ 322   2          }
+ 323   1      
+ 324   1          /* 在主界面旋转编码器
+ 325   1             Rotate Encoder in Main interface */
+ 326   1          else
+ 327   1          {
+ 328   2              /* 调节时间区间
+ 329   2                 Adjust time scale */
+ 330   2              if (OptionInChart == 0)
+ 331   2              {
+ 332   3                  change_ScaleH(i);
+ 333   3                  WaveUpdate = 1;
+ 334   3                  ClearWave = 1;
+ 335   3                  WaveLengthSumNum = 0; 
+ 336   3                  WaveLengthSum = 0;   
+ 337   3              }
+ 338   2      
+ 339   2              /* 调节量程
+ 340   2                 Adjust measuring range */
+ 341   2              else if (OptionInChart == 1)
+ 342   2              {
+ 343   3                  change_RulerVMax(i);
+ 344   3                  WaveUpdate = 1;
+ 345   3                  ClearWave = 0;
+ 346   3              }
+ 347   2      
+ 348   2              /* 调节触发值
+ 349   2                 Adjust Trigger level */
+ 350   2              else if (OptionInChart == 2)
+ 351   2              {
+ 352   3                  change_TriggerValue(i);
+ 353   3                  WaveUpdate = 0;
+ 354   3                  ClearWave = 0;
+ 355   3              }
+ 356   2      
+ 357   2              /* 调节触发方向
+ 358   2                 Adjust Trigger Slope */
+ 359   2              else if (OptionInChart == 3)
+ 360   2              {
+ 361   3                  TriSlope = ~TriSlope;
+ 362   3                  WaveUpdate = 0;
+ 363   3                  ClearWave = 0;
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 7   
+
+ 364   3              }
+ 365   2      
+ 366   2              /* 更改触发方式
+ 367   2                 Switch Trigger Mode */
+ 368   2              if (OptionInChart == 4)
+ 369   2              {
+ 370   3                  change_TriMode(i);
+ 371   3                  Check_MinTimeInterval(); //检查时间区间的合法性
+ 372   3                  WaveUpdate = 1;
+ 373   3                  ClearWave = 1;
+ 374   3                  WaveLengthSumNum = 0; 
+ 375   3                  WaveLengthSum = 0;   
+ 376   3              }
+ 377   2      
+ 378   2              /* 置位设置保存标志
+ 379   2                 Options need to be saved */
+ 380   2              OptionChanged = 1;
+ 381   2          }
+ 382   1      }
+ 383          
+ 384          void check_Options()
+ 385          {
+ 386   1          if (Lsb > LSB_MAX || Lsb < LSB_MIN)
+ 387   1              Lsb = 600;
+ 388   1      
+ 389   1          if (ScaleH > SCALE_H_MAX || ScaleH < SCALE_H_MIN)
+ 390   1              ScaleH = 0;
+ 391   1      
+ 392   1          if (RulerVMax > MAX_V || RulerVMax < MIN_V)
+ 393   1              RulerVMax = 0;
+ 394   1      
+ 395   1          if (RulerVMin > MAX_V || RulerVMin < MIN_V)
+ 396   1              RulerVMin = 0;
+ 397   1      
+ 398   1          if (RulerVMax <= RulerVMin)
+ 399   1          {
+ 400   2              RulerVMax = RulerVMin;
+ 401   2              ScaleV_Auto = 1;
+ 402   2          }
+ 403   1      
+ 404   1          if (TriLevel > MAX_V || TriLevel < MIN_V)
+ 405   1              TriLevel = 2000;
+ 406   1      
+ 407   1          if (TriMode > 2 || TriMode < 0)
+ 408   1              TriMode = 0;
+ 409   1      
+ 410   1          if (OLED_Brightness > BRIGHTNESS_MAX || OLED_Brightness < BRIGHTNESS_MIN)
+ 411   1              OLED_Brightness = 10;
+ 412   1      
+ 413   1          Check_MinTimeInterval();
+ 414   1      }
+ 415          
+ 416          bit Save_Options()
+ 417          {
+ 418   1          uint8 ops[15];
+ 419   1          uint8 *p;
+ 420   1          check_Options();
+ 421   1          p = ops;
+ 422   1          *p++ = Lsb >> 8;       //写入Lsb高8位 uint16
+ 423   1          *p++ = Lsb;            //写入Lsb低8位
+ 424   1          *p++ = PlotMode;       //写入绘图模式 bit
+ 425   1          *p++ = ScaleH;         //写入时间区间 char
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 8   
+
+ 426   1          *p++ = ScaleV_Auto;    //读取自动量程标志 bit
+ 427   1          *p++ = RulerVMax >> 8; //写入纵轴电压高8位 int16
+ 428   1          *p++ = RulerVMax;      //写入纵轴电压低8位
+ 429   1          *p++ = RulerVMin >> 8; //写入纵轴电压高8位 int16
+ 430   1          *p++ = RulerVMin;      //写入纵轴电压低8位
+ 431   1          *p++ = TriLevel >> 8;  //写入触发值高8位 int16
+ 432   1          *p++ = TriLevel;       //写入触发值低8位
+ 433   1          *p++ = TriMode;        //写入触发方式 int8
+ 434   1          *p++ = TriSlope;       //写入触发方向 bit
+ 435   1          *p++ = WaveScroll;     //写入波形滚动标志 bit
+ 436   1          *p = OLED_Brightness;  //写入OLED亮度 uint8
+ 437   1      
+ 438   1          //  printf("Lsb=%hu\r\n",Lsb);
+ 439   1          //  printf("DrawMode=%X\r\n",PlotMode);
+ 440   1          //  printf("ScaleH=%bd\r\n",ScaleH);
+ 441   1          //  printf("ScaleV_Auto=%X\r\n",ScaleV_Auto);
+ 442   1          //  printf("RulerVMax=%hd\r\n",RulerVMax);
+ 443   1          //  printf("RulerVMin=%hd\r\n",RulerVMin);
+ 444   1          //  printf("TriLevel=%hd\r\n",TriLevel);
+ 445   1          //  printf("TriMode=%bd\r\n",TriMode);
+ 446   1          //  printf("TriSlope=%X\r\n",TriSlope);
+ 447   1          //  printf("WaveScroll=%X\r\n",WaveScroll);
+ 448   1          //  printf("OLED_Brightness=%bu\r\n",OLED_Brightness);
+ 449   1          //  printf("\r\n");
+ 450   1          return EEPROM_Save(ops, sizeof(ops) / sizeof(ops[0]));
+ 451   1      }
+ 452          
+ 453          void Read_Options()
+ 454          {
+ 455   1          uint8 ops[15];
+ 456   1          uint8 *p;
+ 457   1          p = ops;
+ 458   1      //    EEPROM_Read(ops, sizeof(ops) / sizeof(ops[0]));
+ 459   1          EEPROM_read_n(IAP_ADDRESS, ops, sizeof(ops) / sizeof(ops[0]));
+ 460   1          Lsb = *p++;           //读取Lsb高8位 uint16
+ 461   1          Lsb <<= 8;            //将低8位移到高八位
+ 462   1          Lsb |= *p++;          //读取Lsb低8位
+ 463   1          PlotMode = *p++;      //读取绘图模式 bit
+ 464   1          ScaleH = *p++;        //读取时间区间 char
+ 465   1          ScaleV_Auto = *p++;   //读取自动量程标志 bit
+ 466   1          RulerVMax = *p++;     //读取纵轴电压最大值高8位 int16
+ 467   1          RulerVMax <<= 8;      //将低8位移到高八位
+ 468   1          RulerVMax |= *p++;    //读取纵轴电压最大值低8位
+ 469   1          RulerVMin = *p++;     //读取纵轴电压最小高8位 int16
+ 470   1          RulerVMin <<= 8;      //将低8位移到高八位
+ 471   1          RulerVMin |= *p++;    //读取纵轴电压最小低8位
+ 472   1          TriLevel = *p++;      //读取触发值高8位 int16
+ 473   1          TriLevel <<= 8;       //将低8位移到高八位
+ 474   1          TriLevel |= *p++;     //读取触发值低8位
+ 475   1          TriMode = *p++;       //读取触发方式 int8
+ 476   1          TriSlope = *p++;      //读取触发方向 bit
+ 477   1          WaveScroll = *p++;    //读取波形滚动标志 bit
+ 478   1          OLED_Brightness = *p; //读取OLED亮度 uint8
+ 479   1      
+ 480   1          check_Options(); //检查选项合法性
+ 481   1          //  printf("Lsb=%hu\r\n",Lsb);
+ 482   1          //  printf("DrawMode=%X\r\n",PlotMode);
+ 483   1          //  printf("ScaleH=%bd\r\n",ScaleH);
+ 484   1          //  printf("ScaleV_Auto=%X\r\n",ScaleV_Auto);
+ 485   1          //  printf("RulerVMax=%hd\r\n",RulerVMax);
+ 486   1          //  printf("RulerVMin=%hd\r\n",RulerVMin);
+ 487   1          //  printf("TriLevel=%hd\r\n",TriLevel);
+C51 COMPILER V9.59.0.0   SETTINGS                                                          05/13/2022 14:16:08 PAGE 9   
+
+ 488   1          //  printf("TriMode=%bd\r\n",TriMode);
+ 489   1          //  printf("TriSlope=%X\r\n",TriSlope);
+ 490   1          //  printf("WaveScroll=%X\r\n",WaveScroll);
+ 491   1          //  printf("OLED_Brightness=%bu\r\n",OLED_Brightness);
+ 492   1          //  printf("\r\n");
+ 493   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2245    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      36
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----      11
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

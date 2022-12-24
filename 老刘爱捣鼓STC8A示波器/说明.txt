@@ -1,0 +1,14 @@
+文件夹 Mini-DSO-master：
+	这个是 老刘爱捣鼓 示波器 Github 下载文件，芯片是 STC8A8K64S4A12 的
+
+
+文件夹 Mini-DSO-master-STC8A8K64D4实验箱版本-20220513：
+	这个是 STC 官网 在 上面的 基础上 小改，改芯片为 STC8A8K64D4 的版本
+	（STC8A8K64D4已全面取代暂无现货的STC8A8K64S4A12）
+	但这个 还是 OLED 小屏幕的，不太愿意用，下面 同芯片而且TFT大屏但好像没有开源（找不到）。
+	
+
+STC 给的 感觉更好的一个方案：STC 的这个 演示视频 是更大的一块 TFT 屏幕，想用，看显示可能是另一个程序，等开源
+	STC 给的 演示视频：http://www.stcmcudata.com/OpenSource/STC8A8K64D4-8BIT-TFT-Mini-DSO-video-20220623.ZIP
+	STC 给的 文字说明：http://www.stcmcudata.com/OpenSource/STC8A8K64D4-8BIT-TFT-Mini-DSO-video-20220527.TXT
+		到22年底了，估计不开源了，STC32版本的出了，这个估计官方也感觉没必要放出了

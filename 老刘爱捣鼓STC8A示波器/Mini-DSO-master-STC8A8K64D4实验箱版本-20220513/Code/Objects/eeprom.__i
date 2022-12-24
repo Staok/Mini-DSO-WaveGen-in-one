@@ -1,0 +1,1 @@
+"eeprom.c" LARGE OPTIMIZE (8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\eeprom.lst) OBJECT(.\Objects\eeprom.obj)

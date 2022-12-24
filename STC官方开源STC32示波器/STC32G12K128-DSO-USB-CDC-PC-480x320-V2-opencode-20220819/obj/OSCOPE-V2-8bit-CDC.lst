@@ -1,0 +1,1333 @@
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE OSCOPE-V2-8bit-CDC
+OBJECT MODULE PLACED IN .\obj\OSCOPE-V2-8bit-CDC.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE src\OSCOPE-V2-8bit-CDC.c XSMALL INTR2 INCDIR(.\src;.\src\inc;.\src\usb
+                    -) DEBUG PRINT(.\obj\OSCOPE-V2-8bit-CDC.lst) TABS(2) OBJECT(.\obj\OSCOPE-V2-8bit-CDC.obj) 
+
+stmt  level    source
+
+    1          
+    2          /*---------------------------------------------------------------------*/
+    3          /* --- STC MCU Limited ------------------------------------------------*/
+    4          /* --- STC 1T Series MCU Demo Programme -------------------------------*/
+    5          /* --- Tel: 86-0513-55012928,55012929 ---------------------------------*/
+    6          /* --- Web: www.STCMCUDATA.com  ---------------------------------------*/
+    7          /* --- QQ:  800003751 -------------------------------------------------*/
+    8          /* Èç¹ûÒªÔÚ³ÌÐòÖÐÊ¹ÓÃ´Ë´úÂë,ÇëÔÚ³ÌÐòÖÐ×¢Ã÷Ê¹ÓÃÁËSTCµÄ×ÊÁÏ¼°³ÌÐò        */
+    9          /* ±¾Àý³ÌÎª¸´ÔÓÓ¦ÓÃ³ÌÐò, ÒÑ²âÊÔÍ¨¹ý, ÓÃ»§×ÔÐÐÀí½âÁìÎò, ²»Ìá¹©¼¼ÊõÖ§³Ö  */
+   10          /*---------------------------------------------------------------------*/
+   11          
+   12          /*************  ¹¦ÄÜËµÃ÷  **************
+   13          
+   14          ±¾Àý³Ì»ùÓÚSTC32GÎªÖ÷¿ØÐ¾Æ¬½øÐÐ±àÐ´²âÊÔ¡£
+   15          
+   16          Ê¹ÓÃKeil C251±àÒëÆ÷£¬Memory ModelÍÆ¼öÉèÖÃXSmallÄ£Ê½£¬Ä¬ÈÏ¶¨Òå±äÁ¿ÔÚedata£¬µ¥Ê±ÖÓ´æÈ¡·ÃÎÊËÙ¶È¿ì¡£
+   17          
+   18          ¼òµ¥Ê¾²¨Æ÷³ÌÐò¡£
+   19          
+   20          ¹¤³ÌÎÄ¼þ:
+   21          EEPROM.c
+   22          OSCOPE-V2-8bit-CDC.c  8bit²ÉÑù
+   23          
+   24          
+   25            STC 32Î»8051È«Çò´óÑ§¼Æ»®
+   26            ÍÀÁúµ¶-STC32G12K128¿ªÔ´Ê¾²¨Æ÷×¨°¸
+   27            2×éCAN£¬USB£¬32Î»8051£¬
+   28            STC32G12K128£¬¸ß¾«×¼12Î»ADC£¬
+   29            DMAÖ§³Ö£¨TFT²ÊÆÁ£¬ADC£¬4×é´®¿Ú£¬SPI£¬I2C£©
+   30            STC32G12K128¹ºÂòÍ¾¾¶£º
+   31            0513-55012928£¬55012929
+   32            ¹ÙÍø£ºwww.STCMCUDATA.com
+   33          
+   34          Ê¾²¨Æ÷²ÎÊý:
+   35          ¹¤×÷µçÑ¹: 5.0V¡£
+   36          MCU:      STC32G12K128.
+   37          Ö÷Æµ:     35MHz¡£
+   38          ADC:      ×î¸ß²ÉÑù800KHz 12Î»£¬±¾Ê¾²¨Æ÷Ê¹ÓÃ×î¸ß²ÉÑùÂÊ500KHz¡£
+   39          Ä£Äâ´ø¿í: Ì½Í·x1´óÓÚµÈÓÚ250mV/DIV£¬Ì½Í·x10´óÓÚµÈÓÚ2.5V/DIV£º100KHz¡£
+   40          ÏÔÊ¾ÆÁ:   ÐéÄâÏÔÊ¾, Í¨ÐÅ·½Ê½ USB-CDC¡£
+   41                    Ë®Æ½16¸ñ£¬Ò»¸ñ25µã£¬Ò»¹²400µã£¬´æ´¢Éî¶È4000µã¡£
+   42                    ´¹Ö±10¸ñ£¬Ã¿¸ñ25µã£¬Ò»¹²250µã¡£
+   43          Ê±»ù:     1-2-5²½½ø£¬50us 100us 200us 500us 1ms 2ms 5ms 10ms 20ms 50ms
+   44                               100ms 200ms 500ms 1s 2s 5s 10s 20s 50s
+   45          ´¹Ö±·ù¶È: Ì½Í·x1:   50mV  100mV  250mV  500mV   1V  2.5V   5V  10V/DIV¡£
+   46                    Ì½Í·x10: 500mV     1V   2.5V     5V  10V   25V  50V  100V/DIV¡£
+   47          ×î¸ßÊäÈëµçÑ¹: Ì½Í·x1£º +-50V£¬Ì½Í·x10£º+-500V¡£
+   48          ´¥·¢Ä£Ê½: ÉÏÉýÑØ´¥·¢£¬ÏÂ½µÑØ´¥·¢¡£
+   49          ´¥·¢·½Ê½: ×Ô¶¯¡¢±ê×¼¡¢µ¥´Î¡£
+   50          
+   51          ******************************************/
+   52          
+   53          
+   54          #include  "inc\stc.h"
+   55          #include  "EEPROM.h"
+   56          #include  "stc.h"
+   57          #include  "usb.h"
+   58          #include  "uart.h"
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 2   
+
+   59          
+   60          
+   61          /*************  ±¾µØ³£Á¿ÉùÃ÷  **************/
+   62          #define   K_BaseTimeUp  0x01
+   63          #define   K_BaseTimeDn  0x02
+   64          #define   K_VoltageUp   0x03
+   65          #define   K_VoltageDn   0x04
+   66          #define   K_RUN_STOP    0x05
+   67          #define   K_TrigPhase   0x06
+   68          #define   K_TrigMode    0x07
+   69          #define   K_ShiftLeft   0x08
+   70          #define   K_ShiftRight  0x09
+   71          #define   K_WaveUp    0x0A
+   72          #define   K_WaveDown    0x0B
+   73          #define   K_RtnMssage   0x0C
+   74          
+   75          #define   EE_ADDR   0x000000
+   76          
+   77          
+   78          /*************  IO¿ÚÉùÃ÷  **************/
+   79          
+   80          sbit  P_V_A    = P0^6;  //ÊäÈëÔöÒæÑ¡Ôñ
+   81          sbit  P_V_B    = P0^5;  //ÊäÈëÔöÒæÑ¡Ôñ, CBA   000 001 010 011 100 101 110 111
+   82          sbit  P_V_C    = P5^3;  //ÊäÈëÔöÒæÑ¡Ôñ, ±¶Êý   2   4   10  1   20 200  40 100  
+   83          //P0.7--T4CLKO: 1000Hz·½²¨Êä³ö
+   84          //P0.4--ADC12: ²¨ÐÎÊäÈë
+   85          //P1.0--PWM1P: ´¹Ö±Î»ÒÆPWM
+   86          //P1.3--PWM2N: Êä³öSPWM, 100HzÕýÏÒ²¨.
+   87          //P1.4--PWM3P: ¸ºµçÑ¹50% PWM
+   88          //P3.3--PWM7_2: H1S_L10ms²âÆµÕ¢ÃÅÐÅºÅ, Í¬Ê±Ò²ÊÇTimer1¶ÔÍâ¼ÆÊý²âÆµÃÅ¿ØÐÅºÅ.
+   89          //P3.4--CMPO, ±È½ÏÆ÷Êä³ö¶Ë
+   90          //P3.5--T1,   Timer1¶ÔÍâ¼ÆÊý²âÆµÊäÈë¶Ë, Á¬½ÓP3.4--CMPO
+   91          //P3.6--CMP-: ±È½ÏÆ÷ÓÃÓÚÍ¬²½¼ì²â
+   92          //P3.7--CMP+: 
+   93          
+   94            
+   95          
+   96          /*************  ±¾µØ±äÁ¿ÉùÃ÷  **************/
+   97          u8  KeyState, KeyCode, KeyHoldCnt;
+   98          bit B_KeyRepeat;
+   99          
+  100          u8  xdata adc_sample[4008];
+  101          u8  edata tmp[32];
+  102          u8  edata adc_tmp[410];
+  103          u8  edata dot[410];
+  104          bit B_ADC_Busy, B_Sample_OK;
+  105          u16 adc_wr, adc_rd;
+  106          u8  adc;
+  107          u8  SampleIndex;
+  108          u16 sample_cnt;
+  109          bit B_sample_ms;
+  110          u16 SampleTime;
+  111          bit B_Run;
+  112          u16 LastDot;
+  113          u8  TimeScale;    //Ê±»ùÏµÊý, 10: 10È¡1, 5: 5È¡1, 2: 2È¡1, 1: 1È¡1
+  114          u8  TimeScaleIndex; //Ê±»ùÏµÊýË÷Òý, 0-->10, 1-->5, 2-->2, 3-->1
+  115          bit B_RUN_REQ;    //ÇëÇóÍ£Ö¹
+  116          
+  117          bit B_TrigPhase;  //Ä¬ÈÏÉÏÉýÑØ´¥·¢
+  118          u8  TrigMode;
+  119          
+  120          u8  InputIndex;   //·ù¶ÈµµÎ»
+  121          u8  AutoTimeCnt;
+  122          u8  AutoTime;
+  123          u8  pwm1_voltage;
+  124          
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 3   
+
+  125          bit B_FrequencyOk;
+  126          u32 frequency;
+  127          u8  freq_H;
+  128          
+  129          bit B_Shift;  //ÒÆÎ»±êÖ¾, Í£Ö¹Ê±ÇÐ»»Ê±»ù»òÒÆÎ»
+  130          u16 Shift;    //ÒÆÎ»µãÊý
+  131          u8  Current_TimeBase;
+  132          u8  WriteDelay; //Ð´ÈëÑÓÊ±
+  133          
+  134          u8  cnt_8ms, cnt_32ms;
+  135          bit B_8ms, B_32ms;
+  136          bit B_32ms_rtn;
+  137          
+  138          u16   TxCnt;
+  139          
+  140          
+  141          /*************  ±¾µØº¯ÊýÉùÃ÷  **************/
+  142          void  ShowOscope(void);
+  143          void  RealShowOscope(void);
+  144          void  Timer0_config(void);
+  145          void  Timer1_config(void);
+  146          u8    Timer3_Config(u8 t, u32 reload);  //t=0: reloadÖµÊÇÖ÷Ê±ÖÓÖÜÆÚÊý,  t=1: reloadÖµÊÇÊ±¼ä(µ¥Î»us), ·µ»Ø0Õý
+             -È·, ·µ»Ø1×°ÔØÖµ¹ý´ó´íÎó.
+  147          void  Timer4_Config(void);
+  148          void  SetSampleTime(void);
+  149          void  ShowVoltage(void);
+  150          
+  151          void  ShowTimeBase(void); //ÏÔÊ¾Ê±»ù
+  152          void  ShowPhase(void);
+  153          void  ShowRunStop(void);  //ÏÔÊ¾ÔËÐÐ×´Ì¬
+  154          void  ShowStartTime(void);
+  155          
+  156          void  ADC_config(void);
+  157          void  Compare_Config(void); //±È½ÏÆ÷³õÊ¼»¯
+  158          void  PWMA_config(void);
+  159          void  PWMB_config(void);
+  160          void  AutoCheck(void);
+  161          void  ShowTrigMode(void);
+  162          void  ShowRunStop(void);
+  163          void  OscStop(void);
+  164          
+  165          void  TxData255(u8 dat);  //×ªÒå×Ö·û´¦Àí
+  166          void  TX_write2buff(u8 dat);  //Ð´Èë·¢ËÍ»º³å£¬Ö¸Õë+1
+  167          void  TrigTx(void); //´¥·¢·¢ËÍ
+  168          
+  169          
+  170          /****************  Íâ²¿º¯ÊýÉùÃ÷ºÍÍâ²¿±äÁ¿ÉùÃ÷ *****************/
+  171          
+  172          /**************************************************************/
+  173          
+  174          //²ÉÑùË÷Òý SampleIndex   0     1      2      3      4     5      6     7      8     9     10     11     1
+             -2     13     14   15   16    17    18    19    20
+  175          //²ÉÑùÊ±¼ä/DIV         10us  20us   50us  100us  200us  500us   1ms   2ms    5ms  10ms   20ms   50ms  100
+             -ms  200ms  500ms  1s   2s    5s   10s   20s   50s
+  176          //µÚÒ»Î¬3, ÊÇ(SampleIndex % 3)µÄÓàÊý, µÚ¶þÎ¬ÊÇËõ·ÅÏµÊý, Êý×ÖÎªÃ¿N¸öµãÈ¡Ò»µã, µ«Êý×ÖÈýÊÇÖ¸2.5µãÈ¡Ò»µã, ÕÛÖ
+             -Ð·½°¸ÊÇÃ¿5µãÈ¡0 2Á½µã.
+  177          u8  const   T_TimeScale[3][4]={ {10,5,2,1},
+  178                          {10,5,3,1},
+  179                          {10,4,2,1}};
+  180          
+  181          //========================================================================
+  182          void  delay_ms(u16 ms)
+  183          {
+  184   1           u16 i;
+  185   1         do
+  186   1         {
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 4   
+
+  187   2          i = MAIN_Fosc / 6000;
+  188   2          while(--i)  ;
+  189   2           }while(--ms);
+  190   1      }
+  191          
+  192          /****************  Ö÷º¯Êý *****************/
+  193          void  main(void)
+  194          {
+  195   1        u16 j;
+  196   1      
+  197   1        WTST  = 0;
+  198   1        CKCON = 0;
+  199   1          EAXFR = 1;  //ÔÊÐí·ÃÎÊÀ©Õ¹¼Ä´æÆ÷
+  200   1      
+  201   1        P0M1 = 0; P0M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  202   1        P1M1 = 0; P1M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  203   1        P2M1 = 0; P2M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  204   1        P3M1 = 0; P3M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  205   1        P4M1 = 0; P4M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  206   1        P5M1 = 0; P5M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  207   1        P6M1 = 0; P6M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  208   1        P7M1 = 0; P7M0 = 0; //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  209   1        
+  210   1        P0n_push_pull(0x80);  //P0.7 T4CLKO 1000Hz
+  211   1      
+  212   1        P33 = 1;  P35 = 1;  //  P3.3--PWM7_2: H1S_L10ms²âÆµÕ¢ÃÅÐÅºÅ
+  213   1      
+  214   1      
+  215   1          P3M0 &= ~0x03;  //ÉèÖÃÎª¸ß×è
+  216   1          P3M1 |= 0x03;
+  217   1          
+  218   1          IRC48MCR = 0x80;
+  219   1          while (!(IRC48MCR & 0x01));
+  220   1      
+  221   1        uart_init();
+  222   1        usb_init();
+  223   1        EA = 1;
+  224   1      
+  225   1        delay_ms(500);
+  226   1        while(DeviceState != DEVSTATE_CONFIGURED) { NOP(3); }
+  227   1        
+  228   1        ADC_config();   //ADC³õÊ¼»¯
+  229   1        Compare_Config(); //Ä£Äâ±È½ÏÆ÷³õÊ¼»¯
+  230   1        Timer0_config();  //Timer0³õÊ¼»¯, ²ÉÑù
+  231   1        Timer1_config();  //Timer1³õÊ¼»¯, ÆµÂÊ¼Æ
+  232   1        Timer3_Config(0, MAIN_Fosc / 5000); //t=0: reloadÖµÊÇÖ÷Ê±ÖÓÖÜÆÚÊý,  (ÖÐ¶ÏÆµÂÊ, 20000´Î/Ãë)
+  233   1        Timer4_Config();  //Timer4³õÊ¼»¯, Êä³ö1000Hz·½²¨.
+  234   1        PWMA_config();    //PWM¿ØÖÆ´¹Ö±Î»ÒÆ¡¢´¥·¢µçÆ½
+  235   1        PWMB_config();    //²úÉú H1S_L10msÕ¢ÃÅÐÅºÅÓÃÓÚ²âÆµ
+  236   1        
+  237   1        EX1 = 1;  //ÔÊÐíÖÐ¶Ï
+  238   1        IT1 = 1;  //ÏÂ½µÑØÖÐ¶Ï
+  239   1      
+  240   1        WriteDelay = 0;
+  241   1        EEPROM_read_n(EE_ADDR, tmp, 6);
+  242   1        if(tmp[4] == (tmp[0]+tmp[1]+tmp[2]+tmp[3]) ^ 0x55)  //Ð£Ñé
+  243   1        {
+  244   2          pwm1_voltage = tmp[0];
+  245   2          SampleIndex = tmp[1]; InputIndex = tmp[2];  TrigMode = tmp[3];
+  246   2          if(TrigMode & 0x80) B_TrigPhase = 1;
+  247   2          else        B_TrigPhase = 0;
+  248   2          TrigMode &= 0x03;
+  249   2          if(pwm1_voltage > 250)  pwm1_voltage = 128; //Ä¬ÈÏÖÐµã
+  250   2          if(SampleIndex > 20)  SampleIndex  = 6; //Ä¬ÈÏ1ms/div
+  251   2          if(SampleIndex < 2)   SampleIndex  = 6; //Ä¬ÈÏ1ms/div
+  252   2          if(InputIndex >= 8)   InputIndex   = 3; //Ä¬ÈÏ1V/div
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 5   
+
+  253   2          if(TrigMode >= 3)   TrigMode     = 0; //Ä¬ÈÏ×Ô¶¯´¥·¢
+  254   2          WriteDelay = 0;   //Ð´ÈëÑÓÊ±
+  255   2        }
+  256   1        else  //Ð£ÑéÃ»Í¨¹ý
+  257   1        {
+  258   2          B_TrigPhase = 0;  //Ä¬ÈÏÉÏÉýÑØ´¥·¢
+  259   2          pwm1_voltage = 128; //Ä¬ÈÏÖÐµã
+  260   2          SampleIndex  = 6; //Ä¬ÈÏ1ms/div
+  261   2          InputIndex   = 3; //Ä¬ÈÏ1V/div
+  262   2          TrigMode     = 0; //Ä¬ÈÏ×Ô¶¯´¥·¢
+  263   2          WriteDelay   = 250; //Ð´ÈëÑÓÊ±
+  264   2        }
+  265   1        PWMA_CCR1L = pwm1_voltage;
+  266   1        
+  267   1      
+  268   1        B_Shift = 0;
+  269   1        Shift  = 0;
+  270   1        B_ADC_Busy = 0;
+  271   1        B_Run = 1;
+  272   1      
+  273   1        ShowTimeBase();   //ÏÔÊ¾Ë®Æ½Ê±»ù
+  274   1        ShowVoltage();    //ÏÔÊ¾´¹Ö±µçÑ¹
+  275   1        ShowRunStop();    //ÏÔÊ¾Í£Ö¹/ÔËÐÐ
+  276   1        ShowPhase();    //ÏÔÊ¾´¥·¢Ä£Ê½(´¥·¢±ßÑØ)
+  277   1        ShowTrigMode();   //ÏÔÊ¾´¥·¢·½Ê½
+  278   1        
+  279   1        KeyCode = 0;
+  280   1      
+  281   1        while (1)
+  282   1        {
+  283   2          if(B_8ms) //8ms
+  284   2          {
+  285   3            B_8ms = 0;
+  286   3            AutoCheck();  // ´¥·¢³¬Ê±´¦Àí
+  287   3          }
+  288   2      
+  289   2          if(B_32ms)
+  290   2          {
+  291   3            B_32ms = 0;
+  292   3            if(WriteDelay != 0)   //ÑÓÊ±Ð´Èë
+  293   3            {
+  294   4              if(--WriteDelay == 0)
+  295   4              {
+  296   5                tmp[0] = pwm1_voltage;
+  297   5                tmp[1] = SampleIndex;
+  298   5                tmp[2] = InputIndex;
+  299   5                tmp[3] = TrigMode;
+  300   5                if(B_TrigPhase) tmp[3] |= 0x80;
+  301   5                tmp[4] = (tmp[0]+tmp[1]+tmp[2]+tmp[3]) ^ 0x55;  //Ð£Ñé
+  302   5                EEPROM_SectorErase(EE_ADDR);
+  303   5                EEPROM_write_n(EE_ADDR,tmp,6);
+  304   5              }
+  305   4            }
+  306   3          }
+  307   2              
+  308   2          if(B_Run)
+  309   2          {
+  310   3            if(!B_ADC_Busy)   //Æô¶¯Ò»´Î²ÉÑùÐòÁÐ
+  311   3            {
+  312   4              B_Sample_OK = 0;
+  313   4              adc_wr = 0;
+  314   4              adc_rd = 0;
+  315   4                 if(SampleIndex <= 2) TimeScale = 1,  TimeScaleIndex = 3; // 50us/DIV   ÖðµãÈ¡  Í£Ö¹Ê±2µã¼äÄÚ²å9µã±ä10±
+             -¶²ÉÑù
+  316   4              else if(SampleIndex == 3) TimeScale = 2,  TimeScaleIndex = 2; // 100us/DIV  2È¡1  Í£Ö¹Ê±2µã¼äÄÚ²å4µã±ä5±
+             -¶²ÉÑù
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 6   
+
+  317   4              else if(SampleIndex == 4) TimeScale = 4,  TimeScaleIndex = 1; // 200us/DIV  4È¡1  Í£Ö¹Ê±2µã¼äÄÚ²å2.5µã±ä
+             -2.5±¶²ÉÑù
+  318   4              else            TimeScale = 10, TimeScaleIndex = 0; // >=500us/DIV  10È¡1
+  319   4              Current_TimeBase = SampleIndex;
+  320   4              B_ADC_Busy = 1;
+  321   4              SetSampleTime();  //ÉèÖÃ²ÉÑùÊ±¼ä
+  322   4              if(B_TrigPhase) CMPCR1 = 0x86 + 0x10; // ±È½ÏÆ÷ÉÏÉýÑØÖÐ¶Ï´¥·¢, ·´ÏàÁË
+  323   4              else      CMPCR1 = 0x86 + 0x20; // ±È½ÏÆ÷ÏÂ½µÑØÖÐ¶Ï´¥·¢, ·´ÏàÁË
+  324   4            }
+  325   3            else if(SampleIndex <= 10)  // <=20ms/DIV
+  326   3            {
+  327   4              if(B_Sample_OK)   //²ÉÑùÍê³É
+  328   4              {
+  329   5                B_Sample_OK = 0;
+  330   5                B_ADC_Busy  = 0;
+  331   5                while(!B_32ms_rtn)  { NOP(5); } //USBÉÏ´«ËÙ¶ÈÌ«¿ì£¬ÔòÏÞÖÆÆäÉÏ´«ËÙ¶È
+  332   5                B_32ms_rtn = 0;
+  333   5                ShowOscope(); //ÏÔÊ¾²¨ÐÎ
+  334   5                if(B_RUN_REQ || (TrigMode == 2))  OscStop();  //ÇëÇóÍ£Ö¹ »ò µ¥´ÎÄ£Ê½ ÔòÍ£Ö¹ÔËÐÐ
+  335   5              }
+  336   4            }
+  337   3      
+  338   3            else if(B_Sample_OK)  //50ms/DIVÒÔÉÏ²ÉÑù, ÊµÊ±Ë¢ÐÂ
+  339   3            {
+  340   4              B_Sample_OK = 0;
+  341   4              RealShowOscope(); //ÊµÊ±ÏÔÊ¾²¨ÐÎ
+  342   4              if(adc_rd >= 4000)  //½áÊø
+  343   4              {
+  344   5                B_ADC_Busy = 0;
+  345   5                if(B_RUN_REQ || (TrigMode == 2))  OscStop();  //ÇëÇóÍ£Ö¹ »ò µ¥´ÎÄ£Ê½ Í£Ö¹ÔËÐÐ
+  346   5              }
+  347   4            }
+  348   3      
+  349   3            if(B_FrequencyOk) //ÆµÂÊÒÑOK
+  350   3            {
+  351   4              B_FrequencyOk = 0;
+  352   4              TxCnt = 0;
+  353   4              TX_write2buff(0xfe);  //ÃüÁîÍ·
+  354   4              TX_write2buff(0x07);  //ÉÏ´«µÄÊÇÆµÂÊ
+  355   4              TxData255((u8)(frequency >> 24));
+  356   4              TxData255((u8)(frequency >> 16));
+  357   4              TxData255((u8)(frequency >> 8));
+  358   4              TxData255((u8)frequency);
+  359   4              TX_write2buff(0xff);  //ÃüÁî½áÊø
+  360   4              TrigTx(); //´¥·¢·¢ËÍ
+  361   4            }
+  362   3          }
+  363   2          else  B_ADC_Busy = 0;
+  364   2      
+  365   2          if (RxFlag)                         //µ±RxFlagÎª1Ê±,±íÊ¾ÒÑ½ÓÊÕµ½CDC´®¿ÚÊý¾Ý
+  366   2                            //½ÓÊÕµÄÊý¾Ý´óÐ¡±£´æÔÚRxCountÀïÃæ,Ã¿¸ö°ü×î¶à½ÓÊÕ64×Ö½Ú
+  367   2                            //Êý¾Ý±£´æÔÚRxBuffer»º³åÇø
+  368   2          {
+  369   3            if((RxCount == 4) && (RxBuffer[0]==0xfe) &&(RxBuffer[1] == 0x01) && (RxBuffer[3] == 0xff))
+  370   3            KeyCode = RxBuffer[2];      //PCÏÂ´«¼ü´úÂë£ºFE 01 DAT0 FF
+  371   3            uart_recv_done();               //¶Ô½ÓÊÕµÄÊý¾Ý´¦ÀíÍê³Éºó,Ò»¶¨Òªµ÷ÓÃÒ»´ÎÕâ¸öº¯Êý,ÒÔ±ãCDC½ÓÊÕÏÂÒ»±Ê´®¿ÚÊ
+             -ý¾Ý
+  372   3          }
+  373   2      
+  374   2          if(KeyCode) //ÓÐ¼ü°´ÏÂ
+  375   2          {
+  376   3            if(KeyCode == K_RUN_STOP)   //ÔËÐÐ/Í£Ö¹
+  377   3            {
+  378   4              if(!B_Run)      //ÒÑÍ£Ö¹ÔòÆô¶¯
+  379   4              {
+  380   5                if(InputIndex >= 8) InputIndex = 7;
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 7   
+
+  381   5                ShowVoltage();
+  382   5                B_Run = 1;    //Æô¶¯ÔËÐÐ
+  383   5                B_RUN_REQ = 0;
+  384   5                ShowRunStop();
+  385   5                B_Shift = 0;
+  386   5                Shift  = 0;
+  387   5              }
+  388   4              else  //ÔËÐÐÖÐ
+  389   4              {
+  390   5                if(TrigMode != 0)     OscStop();  //±ê×¼Ä£Ê½ µ¥´ÎÄ£Ê½, ÔòÖ±½ÓÍ£Ö¹
+  391   5                else if(SampleIndex >= 11)  OscStop();  //É¨ÃèÄ£Ê½, ÔòÖ±½ÓÍ£Ö¹
+  392   5                else  B_RUN_REQ = 1;  //ÔËÐÐÖÐ, ÎÞÍ£Ö¹ÇëÇó, ÔòÇëÇóÍ£Ö¹
+  393   5              }
+  394   4            }
+  395   3      
+  396   3            else if(KeyCode == K_TrigPhase) //ÇÐ»»ÉÏÉýÑØ ÏÂ½µÑØ´¥·¢
+  397   3            {
+  398   4              B_TrigPhase = ~B_TrigPhase;
+  399   4              ShowPhase();
+  400   4              B_ADC_Busy = 0;   //ÇÐ»»´¥·¢Ä£Ê½ÖØÐÂÆô¶¯²ÉÑù(Èç¹ûÃ»ÓÐÍ£Ö¹µÄ»°)
+  401   4              WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  402   4            }
+  403   3      
+  404   3            else if(KeyCode == K_TrigMode)  //ÇÐ»»´¥·¢·½Ê½
+  405   3            {
+  406   4              if(++TrigMode >= 3) TrigMode = 0; //0: ×Ô¶¯, 1:ÆÕÍ¨(±ê×¼), 2:µ¥´Î
+  407   4              ShowTrigMode();
+  408   4              B_ADC_Busy = 0;   //ÇÐ»»´¥·¢Ä£Ê½ÖØÐÂÆô¶¯²ÉÑù(Èç¹ûÃ»ÓÐÍ£Ö¹µÄ»°)
+  409   4              WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  410   4            }
+  411   3      
+  412   3            else if(KeyCode == K_BaseTimeUp)  // Ê±»ù+
+  413   3            {
+  414   4              if(SampleIndex < 20)
+  415   4              {
+  416   5                if(B_Run) //ÔËÐÐÖÐ¸Ä±äÊ±»ù, Ôò½ö½ö¸Ä±ä²ÉÑùÂÊ
+  417   5                {
+  418   6                  SampleIndex++;
+  419   6                  B_ADC_Busy = 0;
+  420   6                  ShowTimeBase(); //ÏÔÊ¾Ê±»ù
+  421   6                  WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  422   6                }
+  423   5                else if(TimeScaleIndex != 0)  //Í£Ö¹Ê±Ëõ·ÅÊ±»ù²¢Ë¢ÐÂ²¨ÐÎ
+  424   5                {
+  425   6                  SampleIndex++;
+  426   6                  TimeScaleIndex--; //Í£Ö¹Ê±Ëõ·Å
+  427   6                  Shift = Shift * TimeScale;
+  428   6                  TimeScale = T_TimeScale[Current_TimeBase%3][TimeScaleIndex];  //Ê±»ùÏµÊýË÷Òý, 0-->10, 1-->5, 2-->2, 
+             -3-->1
+  429   6                  Shift = Shift / TimeScale;
+  430   6                  if(TimeScaleIndex == 0) Shift = 0;
+  431   6                  ShowTimeBase(); //ÏÔÊ¾Ê±»ù
+  432   6                  ShowStartTime();  //ÏÔÊ¾²¨ÐÎÆðÊ¼Ê±¼ä
+  433   6                  ShowOscope();   //Í£Ö¹ÔòË¢ÐÂ²¨ÐÎ
+  434   6                  WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  435   6                }
+  436   5              }
+  437   4            }
+  438   3      
+  439   3            else if(KeyCode == K_BaseTimeDn)    // Ê±»ù-
+  440   3            {
+  441   4              if(SampleIndex > 2)
+  442   4              {
+  443   5                if(B_Run) //ÔËÐÐÖÐ¸Ä±äÊ±»ù, Ôò½ö½ö¸Ä±ä²ÉÑùÂÊ
+  444   5                {
+  445   6                  SampleIndex--;
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 8   
+
+  446   6                  B_ADC_Busy = 0;
+  447   6                  ShowTimeBase(); //ÏÔÊ¾Ê±»ù
+  448   6                  WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  449   6                }
+  450   5                else if(TimeScaleIndex < 3) //Í£Ö¹Ê±Ëõ·ÅÊ±»ù²¢Ë¢ÐÂ²¨ÐÎ
+  451   5                {
+  452   6                  SampleIndex--;
+  453   6                  TimeScaleIndex++; //Í£Ö¹Ê±Ëõ·Å
+  454   6                  Shift = Shift * TimeScale;
+  455   6                  TimeScale = T_TimeScale[Current_TimeBase%3][TimeScaleIndex];  //Ê±»ùÏµÊýË÷Òý, 0-->10, 1-->5, 2-->2, 
+             -3-->1
+  456   6                  Shift = Shift / TimeScale;
+  457   6                  ShowTimeBase(); //ÏÔÊ¾Ê±»ù
+  458   6                  ShowStartTime();  //ÏÔÊ¾²¨ÐÎÆðÊ¼Ê±¼ä
+  459   6                  ShowOscope();   //Í£Ö¹ÔòË¢ÐÂ²¨ÐÎ
+  460   6                  WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  461   6                }
+  462   5              }
+  463   4            }
+  464   3      
+  465   3            else if(KeyCode == K_VoltageUp) //´¹Ö±·ù¶È +
+  466   3            {
+  467   4              if(B_Run) //ÔËÐÐÖÐ
+  468   4              {
+  469   5                if(InputIndex != 0) //µ÷Õû´¹Ö±·ù¶È
+  470   5                {
+  471   6                  InputIndex--;
+  472   6                  ShowVoltage();
+  473   6                  WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  474   6                }
+  475   5              }
+  476   4            }
+  477   3            else if(KeyCode == K_VoltageDn) // ´¹Ö±·ù¶È -
+  478   3            {
+  479   4              if(B_Run) //ÔËÐÐÖÐ
+  480   4              {
+  481   5                if(InputIndex < 7)  //µ÷Õû´¹Ö±·ù¶È
+  482   5                {
+  483   6                  InputIndex++;
+  484   6                  ShowVoltage();
+  485   6                  WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  486   6                }
+  487   5              }
+  488   4            }
+  489   3      
+  490   3            else if(KeyCode == K_WaveUp)  //²¨ÐÎÉÏÒÆ
+  491   3            {
+  492   4              if(B_Run) //ÔËÐÐÖÐ
+  493   4              {
+  494   5                if(pwm1_voltage != 0) pwm1_voltage--;
+  495   5                PWMA_CCR1L = pwm1_voltage;
+  496   5                WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  497   5              }
+  498   4            }
+  499   3            else if(KeyCode == K_WaveDown)  //²¨ÐÎÏÂÒÆ
+  500   3            {
+  501   4              if(B_Run) //ÔËÐÐÖÐ
+  502   4              {
+  503   5                if(pwm1_voltage < 250)  pwm1_voltage++;
+  504   5                PWMA_CCR1L = pwm1_voltage;
+  505   5                WriteDelay = 250; //Ð´ÈëÑÓÊ±8Ãë
+  506   5              }
+  507   4            }
+  508   3      
+  509   3            else if(KeyCode == K_ShiftLeft) //²¨ÐÎ×óÒÆ
+  510   3            {
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 9   
+
+  511   4              if(!B_Run)  //Í£Ö¹Ê±, ×óÓÒÒÆ¶¯²¨ÐÎ
+  512   4              {
+  513   5                if(!B_KeyRepeat)  Shift++;
+  514   5                else        Shift += 10;
+  515   5                TimeScale = T_TimeScale[Current_TimeBase%3][TimeScaleIndex];  //Ê±»ùÏµÊýË÷Òý, 0-->10, 1-->5, 2-->2, 3
+             --->1
+  516   5                if(TimeScale == 3)  j = 8000/5 - 400;
+  517   5                else        j = 4000/TimeScale - 400;
+  518   5                if(Shift >= j)  Shift = j;
+  519   5                ShowStartTime();  //ÏÔÊ¾²¨ÐÎÆðÊ¼Ê±¼ä
+  520   5                ShowOscope();   //Í£Ö¹ÔòË¢ÐÂ²¨ÐÎ
+  521   5              }
+  522   4            }
+  523   3            else if(KeyCode == K_ShiftRight)  //²¨ÐÎÓÒÒÆ
+  524   3            {
+  525   4              if(!B_Run)  //Í£Ö¹Ê±, ×óÓÒÒÆ¶¯²¨ÐÎ
+  526   4              {
+  527   5                if(!B_KeyRepeat)  { if(Shift != 0)  Shift--;  }
+  528   5                else if(Shift >= 10)  Shift -= 10;
+  529   5                else          Shift = 0;
+  530   5                TimeScale = T_TimeScale[Current_TimeBase%3][TimeScaleIndex];  //Ê±»ùÏµÊýË÷Òý, 0-->10, 1-->5, 2-->2, 3
+             --->1
+  531   5                if(TimeScale == 3)  j = 8000/5 - 400;
+  532   5                else        j = 4000/TimeScale - 400;
+  533   5                if(Shift >= j)  Shift = j;
+  534   5                ShowStartTime();  //ÏÔÊ¾²¨ÐÎÆðÊ¼Ê±¼ä
+  535   5                ShowOscope();   //Í£Ö¹ÔòË¢ÐÂ²¨ÐÎ
+  536   5              }
+  537   4            }
+  538   3            
+  539   3            else if(KeyCode == K_RtnMssage) //·µ»Ø²ÎÊý
+  540   3            {
+  541   4              ShowTimeBase();   //ÏÔÊ¾Ë®Æ½Ê±»ù
+  542   4              ShowVoltage();    //ÏÔÊ¾´¹Ö±µçÑ¹
+  543   4              ShowRunStop();    //ÏÔÊ¾Í£Ö¹/ÔËÐÐ
+  544   4              ShowPhase();    //ÏÔÊ¾´¥·¢Ä£Ê½(´¥·¢±ßÑØ)
+  545   4              ShowTrigMode();   //ÏÔÊ¾´¥·¢·½Ê½
+  546   4            } 
+  547   3      
+  548   3            KeyCode = 0;
+  549   3          }
+  550   2        }
+  551   1      }
+  552          /**********************************************/
+  553          
+  554          
+  555          
+  556          /*************** ×ªÒå×Ö·û´¦Àí *******************************/
+  557          void  TxData255(u8 dat)
+  558          {
+  559   1        if(dat >= 0xfb)
+  560   1        {
+  561   2          TX_write2buff(0xfd);  //×ªÒå×Ö·û
+  562   2          TX_write2buff(dat & 0x7f);
+  563   2        }
+  564   1        else  TX_write2buff(dat);
+  565   1      }
+  566          
+  567          
+  568          /*************** ×°ÔØ´®¿Ú·¢ËÍ»º³å *******************************/
+  569          void TX_write2buff(u8 dat)  //Ð´Èë·¢ËÍ»º³å£¬Ö¸Õë+1
+  570          {
+  571   1        TxBuffer[TxCnt++] = dat;
+  572   1      }
+  573          
+  574          /*************** ´¥·¢·¢ËÍ *******************************/
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 10  
+
+  575          void  TrigTx(void)  //´¥·¢·¢ËÍ
+  576          {
+  577   1        uart_send(TxCnt); //½«Òª·¢ËÍµÄÊý¾Ý±£´æÔÚTxBuffer»º³åÇøÖÐ, È»ºóµ÷ÓÃuart_send(n)º¯Êý´¥·¢Êý¾Ý·¢ËÍ,²ÎÊýÎª·¢Ë
+             -ÍµÄ×Ö½ÚÊý. Ò»´Î×î¶à¿É·¢ËÍ64K,º¯ÊýÄÚ²¿»á×Ô¶¯½øÐÐUSB·Ö°ü.
+  578   1      }
+  579          
+  580          /***************** ÏÔÊ¾´¥·¢·½Ê½º¯Êý *****************************/
+  581          void ShowTrigMode(void)
+  582          {
+  583   1        TxCnt = 0;
+  584   1        TX_write2buff(0xfe);    //ÃüÁî¿ªÊ¼
+  585   1        TX_write2buff(0x06);    //ÉÏ´«´¥·¢·½Ê½£ºFE 06 DATA0 FF
+  586   1        TX_write2buff(TrigMode);  //´¥·¢·½Ê½¡£0--×Ô¶¯£¬1--ÆÕÍ¨£¨±ê×¼£©£¬2--µ¥´Î¡£
+  587   1        TX_write2buff(0xff);    //ÃüÁî½áÊø
+  588   1        TrigTx(); //´¥·¢·¢ËÍ
+  589   1      }
+  590          
+  591          /***************** ÏÔÊ¾ÔËÐÐ×´Ì¬º¯Êý *****************************/
+  592          void  ShowRunStop(void)
+  593          {
+  594   1        TxCnt = 0;
+  595   1        TX_write2buff(0xfe);    //ÃüÁî¿ªÊ¼
+  596   1        TX_write2buff(0x04);    //ÉÏ´«ÔËÐÐÄ£Ê½£ºFE 04 DATA0 FF
+  597   1        TX_write2buff((u8)B_Run); //ÔËÐÐÄ£Ê½¡£0--Í£Ö¹£¬1--ÔËÐÐ¡£
+  598   1        TX_write2buff(0xff);    //ÃüÁî½áÊø
+  599   1        TrigTx(); //´¥·¢·¢ËÍ
+  600   1      }
+  601          
+  602          
+  603          /***************** Í£Ö¹ÔËÐÐº¯Êý *****************************/
+  604          void  OscStop(void)
+  605          {
+  606   1        CMPCR1 = 0x86;    // ¹Ø±È½ÏÆ÷ÖÐ¶Ï
+  607   1        TR0    = 0;     //¹Ø±Õ²ÉÑù¶¨Ê±Æ÷1
+  608   1        B_ADC_Busy = 0;
+  609   1        B_Run = 0;
+  610   1        B_RUN_REQ = 0;
+  611   1        AutoTimeCnt = 0;
+  612   1        ShowRunStop();
+  613   1        Shift = 0;      //Í£Ö¹ºó¿ÉÒÔÒÆÎ»²¨ÐÎ
+  614   1        ShowStartTime();  //ÏÔÊ¾²¨ÐÎÆðÊ¼Ê±¼ä
+  615   1      
+  616   1        if(Current_TimeBase == 4) //200us/DIV
+  617   1        {
+  618   2          Current_TimeBase = 5;
+  619   2          TimeScaleIndex   = 1;
+  620   2        }
+  621   1        else if(Current_TimeBase == 3)  //100us/DIV
+  622   1        {
+  623   2          Current_TimeBase = 5;
+  624   2          TimeScaleIndex   = 2;
+  625   2        }
+  626   1        else if(Current_TimeBase == 2)  //50us/DIV
+  627   1        {
+  628   2          Current_TimeBase = 5;
+  629   2          TimeScaleIndex   = 3;
+  630   2        }
+  631   1      }
+  632          
+  633          
+  634                    //²ÉÑùË÷Òý SampleIndex   0     1      2      3      4     5     6     7      8     9     10    
+             - 11     12     13   14    15    16    17    18    19    20
+  635                    //²ÉÑùÊ±¼äµ¥Î»       0.1us 0.1us     us     us     us   10us  10us  10us   0.1ms 0.1ms  0.1ms  
+             - 1ms   1ms    1ms  10ms  10ms  10ms  0.1s  0.1s  0.1s   1s 
+  636          u16 const   StartTimeTable[]= {   4,    8,     2,     4,     8,    2,     4,    8,    2,    4,     8,    
+             - 2,     4,     8,    2,    4,    8,    2,    4,    8,   2};
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 11  
+
+  637                    //²ÉÑùÊ±¼ä/DIV        10us  20us   50us  100us  200us  500us   1ms   2ms    5ms  10ms   20ms   
+             -50ms  100ms  200ms  500ms   1s   2s    5s   10s   20s   50s
+  638          u8  const StartTimeDanWei[]={   2,    2,     3,     3,     3,    4,     4,    4,    5,    5,     5,     6,
+             -     6,     6,    7,    7,    7,    8,    8,    8,   9};
+  639          //    DAT2£ºÊ±¼äµ¥Î»¡£0--1ns£¬1--10ns, 2--100ns, 3--1us£¬4--10us, 5--100us, 6--1ms£¬7--10ms, 8--100ms, 9-
+             --1s¡£
+  640          
+  641          /***************** ÏÔÊ¾ÆðÊ¼Ê±¼äº¯Êý *****************************/
+  642          void ShowStartTime(void)
+  643          {
+  644   1        u16 j;
+  645   1      
+  646   1        TxCnt = 0;
+  647   1        j = StartTimeTable[SampleIndex] * Shift;
+  648   1        TX_write2buff(0xfe);  //ÃüÁî¿ªÊ¼
+  649   1        TX_write2buff(0x08);  //ÉÏ´«²¨ÐÎ×óÒÆÊ±¼ä£ºFE 08 DATA0 DATA1 DATA2 FF
+  650   1        TxData255((u8)(j >> 8));
+  651   1        TxData255((u8)j);
+  652   1        TX_write2buff(StartTimeDanWei[SampleIndex]);  //Ê±¼äµ¥Î»: Ê±¼äµ¥Î»¡£0--1ns£¬1--10ns, 2--100ns, 3--1us£¬4-
+             --10us, 5--100us, 6--1ms£¬7--10ms, 8--100ms, 9--1s¡£
+  653   1        TX_write2buff(0xff);  //ÃüÁî½áÊø
+  654   1        TrigTx(); //´¥·¢·¢ËÍ
+  655   1      }
+  656          
+  657          
+  658          
+  659            #define X_START   40
+  660            #define Y_START   25
+  661            #define GridColor GREEN //¸ñ×ÓÑÕÉ«
+  662            #define WaveColor YELLOW  //²¨ÐÎÑÕÉ«
+  663          
+  664          
+  665          //  P_V_C = 0;  P_V_B = 1;  P_V_A = 1;  //ÊäÈëÔöÒæÑ¡Ôñ, CBA   000 001 010 011 100 101 110 111
+  666                              //        ±¶Êý   2   4   10  1   20 200  40 100
+  667            //Ë÷ÒýInputIndex      0   1    2    3   4    5    6    7    8   9   10
+  668                //±¶Êý      1   2    4   10  20   40   100  200  200 200 200
+  669          u8  const T_V_GAIN[14]={ 3,  0,   1,   2,  4,   6,   7,   5,   5,  5,  5};  //µçÑ¹·ù¶È
+  670                //·ù¶È     1V 500m 250m 100m 50m  25m  10m  5m  2.5m  1m 0.5m
+  671                //·ù¶È    10V  5V  2.5V  1V  500m 250m 100m 50m  25m 10m  5m
+  672          
+  673          /************** ÏÔÊ¾²¨ÐÎº¯Êý ( 50us< ²ÉÑù <=20ms/DIV »òÍ£Ö¹ºóËõ·ÅÊ±»ù) ********************/
+  674          void  ShowOscope(void)
+  675          {
+  676   1        u16 x,j;
+  677   1        u8  i;
+  678   1      
+  679   1        if(TimeScale == 3)
+  680   1        {
+  681   2          j = 8000/5 - 400; //²¨ÐÎÒÆÎ»´¦Àí
+  682   2          if(Shift >= j)  Shift = j;
+  683   2          for(j=(Shift*5)/2,x=0; x<400; x++)
+  684   2          {
+  685   3            i = adc_sample[j];  //¶ÁÒ»¸ö²ÉÑù
+  686   3            if(i > 250) i = 250;
+  687   3            adc_tmp[x] = i;
+  688   3            j = j + 2;
+  689   3            x++;
+  690   3            i = adc_sample[j];  //¶ÁÒ»¸ö²ÉÑù
+  691   3            if(i > 250) i = 250;
+  692   3            adc_tmp[x] = i;
+  693   3            j = j + 3;
+  694   3          }
+  695   2        }
+  696   1        else
+  697   1        {
+  698   2          j = 4000/TimeScale - 400; //²¨ÐÎÒÆÎ»´¦Àí
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 12  
+
+  699   2          if(Shift >= j)  Shift = j;
+  700   2          for(j=Shift*TimeScale,x=0; x<400; x++)
+  701   2          {
+  702   3            i = adc_sample[j];  //¶ÁÒ»¸ö²ÉÑù
+  703   3            if(i > 250) i = 250;
+  704   3            adc_tmp[x] = i;
+  705   3            j = j + TimeScale;
+  706   3          }
+  707   2        }
+  708   1        
+  709   1        TxCnt = 0;
+  710   1        TX_write2buff(0xfb);  //ÉÏ´«Ò»Ö¡Êý¾Ý£ºFB DAT0 DAT1 ..... DAT399 FF
+  711   1        for(x=0; x<400; x++)  TX_write2buff(adc_tmp[x]);
+  712   1        TX_write2buff(0xff);  //ÃüÁî½áÊø
+  713   1        TrigTx(); //´¥·¢·¢ËÍ
+  714   1      }
+  715          
+  716          
+  717          /************** ÊµÊ±ÏÔÊ¾²¨ÐÎº¯Êý(>=50ms/DIV) ********************/
+  718          void  RealShowOscope(void)
+  719          {
+  720   1        u16 x;
+  721   1        u8  i;
+  722   1      
+  723   1        x = adc_rd/10;
+  724   1        if(x >= 400)  return; 
+  725   1      
+  726   1        i = adc_sample[adc_rd];
+  727   1        if(i > 250) i = 250;  //Ôö¼ÓÅÐ¶Ï, ÖÐ¶Ï²»ÅÐ¶Ï
+  728   1        TxCnt = 0;
+  729   1        TX_write2buff(0xfc);  //ÉÏ´«Ò»¸öµãÊý¾Ý£ºFC DAT0 DAT1 DAT2 FF
+  730   1        TxData255((u8)(x>>8));  //XÖáÎ»ÖÃ¸ß×Ö½Ú
+  731   1        TxData255((u8)x);   //XÖáÎ»ÖÃµÍ×Ö½Ú
+  732   1        TX_write2buff(i);     //YÖáÊýÖµ(0~250)
+  733   1        TX_write2buff(0xff);  //ÃüÁî½áÊø
+  734   1        TrigTx(); //´¥·¢·¢ËÍ
+  735   1        adc_rd += 10;
+  736   1      }
+  737          
+  738          
+  739          /***************** ADCÅäÖÃº¯Êý *****************************/
+  740          #define ADC_START (1<<6)  /* ×Ô¶¯Çå0 */
+  741          #define ADC_FLAG  (1<<5)  /* Èí¼þÇå0 */
+  742          
+  743          #define ADC_SPEED 0   /* 0~15, ADCÊ±ÖÓ = SYSclk/2/(n+1) */
+  744          #define RES_FMT   (0<<5)  /* ADC½á¹û¸ñÊ½ 0: ×ó¶ÔÆë, ADC_RES: D9 D8 D7 D6 D5 D4 D3 D2, ADC_RESL: D1 D0 0  0 
+             - 0  0  0  0 */
+  745                        /*             1: ÓÒ¶ÔÆë, ADC_RES: 0  0  0  0  0  0  D9 D8, ADC_RESL: D7 D6 D5 D4 D3 D2 D1 D0 */
+  746          
+  747          #define CSSETUP   (0<<7)  /* 0~1,  ADCÍ¨µÀÑ¡ÔñÊ±¼ä      0: 1¸öADCÊ±ÖÓ, 1: 2¸öADCÊ±ÖÓ,  Ä¬ÈÏ0(Ä¬ÈÏ1¸öADCÊ±ÖÓ
+             -)  */
+  748          #define CSHOLD    (0<<5)  /* 0~3,  ADCÍ¨µÀÑ¡Ôñ±£³ÖÊ±¼ä  (n+1)¸öADCÊ±ÖÓ, Ä¬ÈÏ1(Ä¬ÈÏ2¸öADCÊ±ÖÓ)         */
+  749          #define SMPDUTY   10    /* 10~31, ADCÄ£ÄâÐÅºÅ²ÉÑùÊ±¼ä  (n+1)¸öADCÊ±ÖÓ, Ä¬ÈÏ10(Ä¬ÈÏ11¸öADCÊ±ÖÓ)        */
+  750                        /* ADC×ª»»Ê±¼ä: 10Î»ADC¹Ì¶¨Îª10¸öADCÊ±ÖÓ, 12Î»ADC¹Ì¶¨Îª12¸öADCÊ±ÖÓ.         */
+  751          
+  752          void  ADC_config(void)
+  753          {
+  754   1        P0n_pure_input(0x10); //ÉèÖÃÒª×öADCµÄIO×ö¸ß×èÊäÈë
+  755   1        ADC_CONTR = 0x80 + 12;  //ADC on + channel
+  756   1        ADCCFG = RES_FMT + ADC_SPEED;
+  757   1        P_SW2 |=  0x80; //·ÃÎÊXSFR
+  758   1        ADCTIM = CSSETUP + CSHOLD + SMPDUTY;  //28 ADC CLOCK
+  759   1      }
+  760          //***********************************************************************************************
+  761          
+  762          //========================================================================
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 13  
+
+  763          // º¯Êý: void Timer4_Config(void)
+  764          // ÃèÊö: timer3³õÊ¼»¯º¯Êý.
+  765          // ²ÎÊý: none.
+  766          // ·µ»Ø: none.
+  767          // °æ±¾: V1.0, 2018-12-20
+  768          //========================================================================
+  769          void Timer4_Config(void)
+  770          {
+  771   1        P_SW2 |= 0x80;    //SFR enable   
+  772   1        T4T3M &= 0x0f;    //Í£Ö¹¼ÆÊý, ¶¨Ê±Ä£Ê½, 12TÄ£Ê½, ²»Êä³öÊ±ÖÓ
+  773   1      
+  774   1        T4T3M |=  (1<<5); //1T mode
+  775   1        T4H = (u8)((65536UL - MAIN_Fosc/2000) /256);
+  776   1        T4L = (u8)((65536UL - MAIN_Fosc/2000) %256);
+  777   1      
+  778   1        T3T4PIN = 0x00;   //Ñ¡ÔñIO, 0x00: T3--P0.4, T3CLKO--P0.5, T4--P0.6, T4CLKO--P0.7;    0x01: T3--P0.0, T3CL
+             -KO--P0.1, T4--P0.2, T4CLKO--P0.3;
+  779   1        T4T3M |=  (1<<4); //ÔÊÐíÊä³öÊ±ÖÓ
+  780   1        T4T3M |=  (1<<7); //¿ªÊ¼ÔËÐÐ
+  781   1      }
+  782          
+  783          /************************ ±È½ÏÆ÷ÅäÖÃº¯Êý ****************************/
+  784          void  Compare_Config(void)  //±È½ÏÆ÷³õÊ¼»¯
+  785          {
+  786   1        CMPCR1 = 0;
+  787   1        CMPCR2 = 10;    //±È½Ï½á¹û±ä»¯ÑÓÊ±ÖÜÆÚÊý, 0~63
+  788   1        CMPCR1 |= (1<<7); //1: ÔÊÐí±È½ÏÆ÷,     0:¹Ø±Õ±È½ÏÆ÷
+  789   1        CMPCR1 |= (0<<5); //1: ÔÊÐíÉÏÉýÑØÖÐ¶Ï, 0: ½ûÖ¹
+  790   1        CMPCR1 |= (0<<4); //1: ÔÊÐíÏÂ½µÑØÖÐ¶Ï, 0: ½ûÖ¹
+  791   1        CMPCR1 |= (0<<3); //ÊäÈëÕý¼«ÐÔÑ¡Ôñ, 0: Ñ¡ÔñÍâ²¿P3.7×öÕýÊäÈë,           1: ÓÉADC_CHS[3:0]ËùÑ¡ÔñµÄADCÊäÈë¶
+             -Ë×öÕýÊäÈë.
+  792   1        CMPCR1 |= (1<<2); //ÊäÈë¸º¼«ÐÔÑ¡Ôñ, 0: Ñ¡ÔñÄÚ²¿BandGapµçÑ¹BGv×ö¸ºÊäÈë, 1: Ñ¡ÔñÍâ²¿P3.6×öÊäÈë
+  793   1        CMPCR1 |= (1<<1); //1: ÔÊÐí±È½Ï½á¹ûÊä³öµ½IO(P3.4»òP4.1),  0: ±È½Ï½á¹û½ûÖ¹Êä³öµ½IO
+  794   1        CMPCR2 |= (0<<7); //1: ±È½ÏÆ÷½á¹ûÊä³öIOÈ¡·´, 0: ²»È¡·´
+  795   1        CMPCR2 |= (0<<6); //0: ÔÊÐíÄÚ²¿0.1uFÂË²¨,    1: ¹Ø±Õ
+  796   1      
+  797   1        CMPO_P34();       //½á¹ûÊä³öµ½P3.4.
+  798   1      //  CMPO_P41();       //½á¹ûÊä³öµ½P4.1.
+  799   1        P3n_push_pull(Pin4);  //P3.4ÉèÖÃÎªÍÆÍìÊä³ö
+  800   1        P3n_pure_input(0xc0); //ÉèÖÃÒª×öADCµÄIO×ö¸ß×èÊäÈë(P3.7 P3.6)
+  801   1        IP2  |= (1<<5); //±È½ÏÆ÷ÖÐ¶ÏÓÅÏÈ¼¶×î¸ß
+  802   1        IP2H |= (1<<5);
+  803   1      
+  804   1        CMPCR1 = 0x86;      // ¹Ø±È½ÏÆ÷ÖÐ¶Ï
+  805   1      //  CMPCR1 = 0x86 + 0x20; // ±È½ÏÆ÷ÉÏÉýÑØÖÐ¶Ï
+  806   1      //  CMPCR1 = 0x86 + 0x10; // ±È½ÏÆ÷ÏÂ½µÑØÖÐ¶Ï
+  807   1      }
+  808          
+  809          /***************** ±È½ÏÆ÷ÖÐ¶Ïº¯Êý *****************************/
+  810          void CMP_ISR(void) interrupt CMP_VECTOR   //±È½ÏÆ÷ÖÐ¶Ïº¯Êý, ¼ì²âµ½·´µç¶¯ÊÆ¹ý0ÊÂ¼þ
+  811          {
+  812   1        ADC_RES = 0;
+  813   1      //  ADC_RESL = 0;
+  814   1        ADC_CONTR = 0x80 + ADC_START + 12;  //ADC on + channel
+  815   1        TR0 = 1;    //¿ªÊ¼ÔËÐÐTimer1.
+  816   1      
+  817   1        AutoTimeCnt = 0;  //ÓÐÍ¬²½ÐÅºÅ, ÔòÈ¡Ïû³¬Ê±´¥·¢
+  818   1        adc_wr  = 0;
+  819   1        adc_rd  = 0;
+  820   1      
+  821   1        CMPCR1 = 0x86;    // ¹Ø±È½ÏÆ÷ÖÐ¶Ï ²¢ÇÒÇå³ýÖÐ¶Ï±êÖ¾Î»
+  822   1      }
+  823          
+  824          /***************** ¶¨Ê±Æ÷1³õÊ¼»¯º¯Êý *****************************/
+  825          void  Timer1_config(void)
+  826          {
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 14  
+
+  827   1        TR1 = 0;  //Í£Ö¹¼ÆÊý
+  828   1        Timer1_1T();
+  829   1        Timer1_16bit();
+  830   1        Timer1_AsCounter();
+  831   1        TH1 = 0;  TL1 = 0;
+  832   1        Timer1_Gate_INT1_P33();
+  833   1        Timer1_InterruptEnable();
+  834   1        TR1 = 1;
+  835   1      }
+  836          
+  837          //========================================================================
+  838          // º¯Êý: void timer1_ISR (void) interrupt TMR1_VECTOR
+  839          // ÃèÊö:  timer1ÖÐ¶Ïº¯Êý.
+  840          // ²ÎÊý: none.
+  841          // ·µ»Ø: none.
+  842          // °æ±¾: V1.0, 2018-12-20
+  843          //========================================================================
+  844          void timer1_ISR (void) interrupt TMR1_VECTOR
+  845          {
+  846   1        freq_H++;
+  847   1      }
+  848          
+  849          /********************* INT0ÖÐ¶Ïº¯Êý *************************/
+  850          void INT1_ISR(void) interrupt INT1_VECTOR
+  851          {
+  852   1        frequency = ((u32)freq_H << 16) + ((u32)TH1 << 8) + (u32)TL1;
+  853   1        freq_H = 0; TH1 = 0;  TL1 = 0;
+  854   1        B_FrequencyOk = 1;
+  855   1      }
+  856          
+  857          
+  858          //========================================================================
+  859          // º¯Êý: void PWMA_config(void)
+  860          // ÃèÊö: PWMA³õÊ¼»¯º¯Êý.
+  861          // ²ÎÊý: none.
+  862          // ·µ»Ø: none.
+  863          // °æ±¾: V1.0, 2022-6-25
+  864          //========================================================================
+  865          void PWMA_config(void)
+  866          {
+  867   1        u8  ccer1;
+  868   1        u8  ccer2;
+  869   1        u8  ps;
+  870   1        u8  eno;
+  871   1        u8  PWMA_ISR_En;
+  872   1      
+  873   1        P_SW2 |= 0x80;    //SFR enable   
+  874   1        PWMA_ENO    = 0;  // IOÊä³ö½ûÖ¹
+  875   1        PWMA_IER    = 0;  // ½ûÖ¹ÖÐ¶Ï
+  876   1        PWMA_SR1    = 0;  // Çå³ý×´Ì¬
+  877   1        PWMA_SR2    = 0;  // Çå³ý×´Ì¬
+  878   1        ccer1 = 0;
+  879   1        ccer2 = 0;
+  880   1        ps    = 0;
+  881   1        eno   = 0;
+  882   1        PWMA_ISR_En = 0;
+  883   1      
+  884   1        PWMA_PSCRH = 0x00;    // Ô¤·ÖÆµ¼Ä´æÆ÷, ·ÖÆµ Fck_cnt = Fck_psc/(PSCR[15:0}+1), ±ßÑØ¶ÔÆëPWMÆµÂÊ = SYSclk/((P
+             -SCR+1)*(AAR+1)), ÖÐÑë¶ÔÆëPWMÆµÂÊ = SYSclk/((PSCR+1)*(AAR+1)*2).
+  885   1        PWMA_PSCRL = 0x00;
+  886   1        PWMA_DTR  = 24;     // ËÀÇøÊ±¼äÅäÖÃ, n=0~127: DTR= n T,   0x80 ~(0x80+n), n=0~63: DTR=(64+n)*2T,  
+  887   1                    //        0xc0 ~(0xc0+n), n=0~31: DTR=(32+n)*8T,   0xE0 ~(0xE0+n), n=0~31: DTR=(32+n)*16T,
+  888   1        PWMA_ARRH   = 256/256;  // ×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷,  ¿ØÖÆPWMÖÜÆÚ
+  889   1        PWMA_ARRL   = 256%256;
+  890   1      
+  891   1        PWMA_CCMR1  = 0x68;   // Í¨µÀÄ£Ê½ÅäÖÃ, PWMÄ£Ê½1, Ô¤×°ÔØÔÊÐí
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 15  
+
+  892   1        PWMA_CCR1H  = 128/256;  // ±È½ÏÖµ, ¿ØÖÆÕ¼¿Õ±È(¸ßµçÆ½Ê±ÖÓÊý)
+  893   1        PWMA_CCR1L  = 128%256;
+  894   1        ccer1 |= 0x05;      // ¿ªÆô±È½ÏÊä³ö, ¸ßµçÆ½ÓÐÐ§
+  895   1        ps    |= 0;       // Ñ¡ÔñIO, 0:Ñ¡ÔñP1.0 P1.1, 1:Ñ¡ÔñP2.0 P2.1, 2:Ñ¡ÔñP6.0 P6.1, 
+  896   1        eno   |= 0x01;      // IOÊä³öÔÊÐí,  bit7: ENO4N, bit6: ENO4P, bit5: ENO3N, bit4: ENO3P,  bit3: ENO2N,  bit2
+             -: ENO2P,  bit1: ENO1N,  bit0: ENO1P
+  897   1      //  PWMA_ISR_En|= 0x02;   // Ê¹ÄÜÖÐ¶Ï
+  898   1      
+  899   1        PWMA_CCMR2  = 0x68;   // Í¨µÀÄ£Ê½ÅäÖÃ, PWMÄ£Ê½1, Ô¤×°ÔØÔÊÐí
+  900   1        PWMA_CCR2H  = 128/256;  // ±È½ÏÖµ, ¿ØÖÆÕ¼¿Õ±È(¸ßµçÆ½Ê±ÖÓÊý)
+  901   1        PWMA_CCR2L  = 128%256;
+  902   1        ccer1 |= 0x50;      // ¿ªÆô±È½ÏÊä³ö, ¸ßµçÆ½ÓÐÐ§
+  903   1        ps    |= (0<<2);    // Ñ¡ÔñIO, 0:Ñ¡ÔñP1.2 P1.3, 1:Ñ¡ÔñP2.2 P2.3, 2:Ñ¡ÔñP6.2 P6.3, 
+  904   1        eno   |= 0x08;      // IOÊä³öÔÊÐí,  bit7: ENO4N, bit6: ENO4P, bit5: ENO3N, bit4: ENO3P,  bit3: ENO2N,  bit2
+             -: ENO2P,  bit1: ENO1N,  bit0: ENO1P
+  905   1      //  PWMA_ISR_En|= 0x04;   // Ê¹ÄÜÖÐ¶Ï
+  906   1      
+  907   1        PWMA_CCMR3  = 0x68;   // Í¨µÀÄ£Ê½ÅäÖÃ, PWMÄ£Ê½1, Ô¤×°ÔØÔÊÐí
+  908   1        PWMA_CCR3H  = 128/256;  // ±È½ÏÖµ, ¿ØÖÆÕ¼¿Õ±È(¸ßµçÆ½Ê±ÖÓÊý)
+  909   1        PWMA_CCR3L  = 128%256;
+  910   1        ccer2 |= 0x05;      // ¿ªÆô±È½ÏÊä³ö, ¸ßµçÆ½ÓÐÐ§
+  911   1        ps    |= (0<<4);    // Ñ¡ÔñIO, 0:Ñ¡ÔñP1.4 P1.5, 1:Ñ¡ÔñP2.4 P2.5, 2:Ñ¡ÔñP6.4 P6.5, 
+  912   1        eno   |= 0x10;      // IOÊä³öÔÊÐí,  bit7: ENO4N, bit6: ENO4P, bit5: ENO3N, bit4: ENO3P,  bit3: ENO2N,  bit2
+             -: ENO2P,  bit1: ENO1N,  bit0: ENO1P
+  913   1      //  PWMA_ISR_En|= 0x08;   // Ê¹ÄÜÖÐ¶Ï
+  914   1      
+  915   1        PWMA_CCER1  = ccer1;  // ²¶»ñ/±È½ÏÊ¹ÄÜ¼Ä´æÆ÷1
+  916   1        PWMA_CCER2  = ccer2;  // ²¶»ñ/±È½ÏÊ¹ÄÜ¼Ä´æÆ÷2
+  917   1        PWMA_PS     = ps;   // Ñ¡ÔñIO
+  918   1        PWMA_IER    = PWMA_ISR_En;  //ÉèÖÃÔÊÐíÍ¨µÀ1~4ÖÐ¶Ï´¦Àí
+  919   1      
+  920   1        PWMA_BKR    = 0x80;   // Ö÷Êä³öÊ¹ÄÜ Ïàµ±ÓÚ×Ü¿ª¹Ø
+  921   1        PWMA_CR1    = 0x81;   // Ê¹ÄÜ¼ÆÊýÆ÷, ÔÊÐí×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷»º³å, ±ßÑØ¶ÔÆëÄ£Ê½, ÏòÉÏ¼ÆÊý,  bit7=1:Ð´×Ô¶¯ÖØ×°
+             -ÔØ¼Ä´æÆ÷»º³å(±¾ÖÜÆÚ²»»á±»´òÈÅ), =0:Ö±½ÓÐ´×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷±¾(ÖÜÆÚ¿ÉÄÜ»áÂÒµô)
+  922   1        PWMA_EGR    = 0x01;   //²úÉúÒ»´Î¸üÐÂÊÂ¼þ, Çå³ý¼ÆÊýÆ÷ºÍÔ¤·ÖÆµ¼ÆÊýÆ÷, ×°ÔØÔ¤·ÖÆµ¼Ä´æÆ÷µÄÖµ
+  923   1        PWMA_ENO    = eno;    // ÔÊÐíIOÊä³ö
+  924   1      
+  925   1        P1n_push_pull(0x19);  //P1.0 P1.3 P1.4 ÉèÖÃÎªÍÆÍìÊä³ö
+  926   1      }
+  927          //  PWMA_PS   = (0<<6)+(0<<4)+(0<<2)+0; //Ñ¡ÔñIO, 4Ïî´Ó¸ßµ½µÍ(´Ó×óµ½ÓÒ)¶ÔÓ¦PWM1 PWM2 PWM3 PWM4, 0:Ñ¡ÔñP1.x
+             -, 1:Ñ¡ÔñP2.x, 2:Ñ¡ÔñP6.x, 
+  928          //  PWMA_PS    PWM4N PWM4P    PWM3N PWM3P    PWM2N PWM2P    PWM1N PWM1P
+  929          //    00       P1.7  P1.6     P1.5  P1.4     P1.3  P5.4     P1.1  P1.0
+  930          //    01       P2.7  P2.6     P2.5  P2.4     P2.3  P2.2     P2.1  P2.0
+  931          //    02       P6.7  P6.6     P6.5  P6.4     P6.3  P6.2     P6.1  P6.0
+  932          //    03       P3.3  P3.4      --    --       --    --       --    --
+  933          
+  934          //========================================================================
+  935          // º¯Êý: void PWMB_config(void)
+  936          // ÃèÊö: PWMA³õÊ¼»¯º¯Êý.
+  937          // ²ÎÊý: none.
+  938          // ·µ»Ø: none.
+  939          // °æ±¾: V1.0, 2022-6-25
+  940          //========================================================================
+  941          void PWMB_config(void)
+  942          {
+  943   1        u8  ccer1;
+  944   1        u8  ccer2;
+  945   1        u8  ps;
+  946   1        u8  eno;
+  947   1        u8  PWMB_ISR_En;
+  948   1      
+  949   1        P_SW2 |= 0x80;    //SFR enable   
+  950   1        PWMB_ENO    = 0;  // IOÊä³ö½ûÖ¹
+  951   1        PWMB_IER    = 0;  // ½ûÖ¹ÖÐ¶Ï
+  952   1        PWMB_SR1    = 0;  // Çå³ý×´Ì¬
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 16  
+
+  953   1        PWMB_SR2    = 0;  // Çå³ý×´Ì¬
+  954   1        ccer1 = 0;
+  955   1        ccer2 = 0;
+  956   1        ps    = 0;
+  957   1        eno   = 0;
+  958   1        PWMB_ISR_En = 0;
+  959   1      
+  960   1        PWMB_PSCRH = (u8)((35000-1)/256);   // Ô¤·ÖÆµ¼Ä´æÆ÷, ·ÖÆµ Fck_cnt = Fck_psc/(PSCR[15:0}+1), ±ßÑØ¶ÔÆëPWMÆµ
+             -ÂÊ = SYSclk/((PSCR+1)*(AAR+1)), ÖÐÑë¶ÔÆëPWMÆµÂÊ = SYSclk/((PSCR+1)*(AAR+1)*2).
+  961   1        PWMB_PSCRL = (u8)((35000-1)%256);
+  962   1        PWMB_ARRH  = (u8)(1010/256);  // ×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷,  ¿ØÖÆPWMÖÜÆÚ
+  963   1        PWMB_ARRL  = (u8)(1010%256);
+  964   1      
+  965   1        PWMB_CCMR3  = 0x68;   // Í¨µÀÄ£Ê½ÅäÖÃ, PWMÄ£Ê½1, Ô¤×°ÔØÔÊÐí
+  966   1        PWMB_CCR3H  = (u8)(1000/256); // ±È½ÏÖµ, ¿ØÖÆÕ¼¿Õ±È(¸ßµçÆ½Ê±ÖÓÊý)
+  967   1        PWMB_CCR3L  = (u8)(1000%256);
+  968   1        ccer2 |= 0x05;      // ¿ªÆô±È½ÏÊä³ö, ¸ßµçÆ½ÓÐÐ§
+  969   1        ps    |= (1<<4);    // Ñ¡ÔñIO, 0:Ñ¡ÔñP2.2, 1:Ñ¡ÔñP3.3, 2:Ñ¡ÔñP0.2, 3:Ñ¡ÔñP7.6, 
+  970   1        eno   |= 0x10;      // IOÊä³öÔÊÐí,  bit6: ENO8P, bit4: ENO7P,  bit2: ENO6P,  bit0: ENO5P
+  971   1      //  PWMB_ISR_En|= 0x08;   // Ê¹ÄÜÖÐ¶Ï
+  972   1      
+  973   1        PWMB_CCER1  = ccer1;  // ²¶»ñ/±È½ÏÊ¹ÄÜ¼Ä´æÆ÷1
+  974   1        PWMB_CCER2  = ccer2;  // ²¶»ñ/±È½ÏÊ¹ÄÜ¼Ä´æÆ÷2
+  975   1        PWMB_PS     = ps;   // Ñ¡ÔñIO
+  976   1        PWMB_IER    = PWMB_ISR_En;  //ÉèÖÃÔÊÐíÍ¨µÀ1~4ÖÐ¶Ï´¦Àí
+  977   1      
+  978   1        PWMB_BKR    = 0x80;   // Ö÷Êä³öÊ¹ÄÜ Ïàµ±ÓÚ×Ü¿ª¹Ø
+  979   1        PWMB_CR1    = 0x81;   // Ê¹ÄÜ¼ÆÊýÆ÷, ÔÊÐí×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷»º³å, ±ßÑØ¶ÔÆëÄ£Ê½, ÏòÉÏ¼ÆÊý,  bit7=1:Ð´×Ô¶¯ÖØ×°
+             -ÔØ¼Ä´æÆ÷»º³å(±¾ÖÜÆÚ²»»á±»´òÈÅ), =0:Ö±½ÓÐ´×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷±¾(ÖÜÆÚ¿ÉÄÜ»áÂÒµô)
+  980   1        PWMB_EGR    = 0x01;   //²úÉúÒ»´Î¸üÐÂÊÂ¼þ, Çå³ý¼ÆÊýÆ÷ºÍÔ¤·ÖÆµ¼ÆÊýÆ÷, ×°ÔØÔ¤·ÖÆµ¼Ä´æÆ÷µÄÖµ
+  981   1        PWMB_ENO    = eno;    // ÔÊÐíIOÊä³ö
+  982   1        P3n_push_pull(1<<3);  //P3.3ÉèÖÃÎªÍÆÍìÊä³ö
+  983   1      }
+  984          //  PWMB_PS   = (0<<6)+(0<<4)+(0<<2)+0; //Ñ¡ÔñIO, 4Ïî´Ó¸ßµ½µÍ(´Ó×óµ½ÓÒ)¶ÔÓ¦PWM8 PWM7 PWM6 PWM5
+  985          //  PWMB_PS    PWM8    PWM7    PWM6    PWM5
+  986          //    00       P2.3    P2.2    P2.1    P2.0
+  987          //    01       P3.4    P3.3    P5.4    P1.7
+  988          //    02       P0.3    P0.2    P0.1    P0.0
+  989          //    03       P7.7    P7.6    P7.5    P7.4
+  990          
+  991          
+  992          //========================================================================
+  993          // º¯Êý:void  Timer0_config(void)
+  994          // ÃèÊö: timer0³õÊ¼»¯º¯Êý.
+  995          // ²ÎÊý: noe.
+  996          // ·µ»Ø: none.
+  997          // °æ±¾: V1.0, 2018-12-20
+  998          //========================================================================
+  999          void  Timer0_config(void)
+ 1000          {
+ 1001   1        TR0 = 0;  //Í£Ö¹¼ÆÊý
+ 1002   1        ET0 = 1;  //ÔÊÐíÖÐ¶Ï
+ 1003   1        PT0 = 1;  //¸ßÓÅÏÈ¼¶ÖÐ¶Ï
+ 1004   1        TMOD &= ~0x03;
+ 1005   1      //  TMOD |= 0;  //¹¤×÷Ä£Ê½, 0: 16Î»×Ô¶¯ÖØ×°, 1: 16Î»¶¨Ê±/¼ÆÊý, 2: 8Î»×Ô¶¯ÖØ×°
+ 1006   1        Timer0_1T();  //1T mode
+ 1007   1      //  TR0 = 1;  //¿ªÊ¼ÔËÐÐ
+ 1008   1      }
+ 1009          
+ 1010          //========================================================================
+ 1011          void timer0_ISR (void) interrupt TMR0_VECTOR
+ 1012          {
+ 1013   1        adc = ~ADC_RES;
+ 1014   1        ADC_RES = 0;
+ 1015   1      //  ADC_RESL = 0;
+ 1016   1        ADC_CONTR = 0x80 + ADC_START + 12;  //ADC on + channel
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 17  
+
+ 1017   1      
+ 1018   1        if(!B_sample_ms)  //  <=20ms/DIV, ²ÉÑùÍêÒ»¿éÔÙÏÔÊ¾
+ 1019   1        {
+ 1020   2          adc_sample[adc_wr] = adc;
+ 1021   2          if(++adc_wr >= 4000)  B_Sample_OK = 1, TR0 = 0;
+ 1022   2        }
+ 1023   1      
+ 1024   1        else if(--sample_cnt == 0)  // >=50ms/DIV ÊµÊ±É¨ÃèÏÔÊ¾²¨ÐÎ
+ 1025   1        {
+ 1026   2          sample_cnt = SampleTime;
+ 1027   2          adc_sample[adc_wr] = adc;
+ 1028   2          if((adc_wr%10) == 0)  B_Sample_OK = 1;
+ 1029   2          if(++adc_wr >= 4000)  B_Sample_OK = 1, TR0 = 0;
+ 1030   2        }
+ 1031   1      }
+ 1032          
+ 1033          //================= ´¥·¢³¬Ê±´¦Àí ========================
+ 1034          void  AutoCheck(void)
+ 1035          {
+ 1036   1        if(AutoTimeCnt != 0)    //8ms call
+ 1037   1        {
+ 1038   2          if(--AutoTimeCnt == 0)  //Í¬²½´¥·¢³¬Ê±, ÔòÇ¿ÖÆÆô¶¯
+ 1039   2          {
+ 1040   3            ADC_RES = 0;
+ 1041   3            ADC_RESL = 0;
+ 1042   3            ADC_CONTR = 0x80 + ADC_START + 12;  //ADC on + channel
+ 1043   3            TR0 = 1;    //¿ªÊ¼ÔËÐÐTimer1.
+ 1044   3      
+ 1045   3            CMPCR1 = 0x86;    // ¹Ø±È½ÏÆ÷ÖÐ¶Ï
+ 1046   3            adc_wr  = 0;
+ 1047   3            adc_rd  = 0;
+ 1048   3          }
+ 1049   2        }
+ 1050   1      }
+ 1051          
+ 1052          
+ 1053          
+ 1054          
+ 1055          #define D_MAIN_CLOCK  35
+ 1056          
+ 1057                    //²ÉÑùË÷Òý SampleIndex   0     1      2      3      4     5      6     7      8     9     10   
+             -  11     12     13     14   15   16    17    18    19    20
+ 1058                    //²ÉÑùÊ±¼äµ¥Î»          us    us     us     us     us    us     us    us     us    us     us   
+             -  ms     ms     ms     ms   ms   ms    ms    ms    ms    ms 
+ 1059          u16 const   SampleTimeTable[]={   2,    2,     2,     2,     2,     2,    4,    8,    20,   40,    80,   
+             -200,   400,   800,     2,   4,    8,   20,   40,   80,  200};
+ 1060                    //²ÉÑùÊ±¼ä/DIV        10us  20us   50us  100us  200us  500us   1ms   2ms    5ms  10ms   20ms   
+             -50ms  100ms  200ms  500ms   1s   2s    5s   10s   20s   50s
+ 1061          u16 const   T_Time_div[]=     {  10,   20,    50,   100,   200,   500,    1,    2,     5,   10,    20,   
+             - 50,   100,   200,   500,   1,    2,    5,   10,   20,   50};
+ 1062          u8  const   T_Time_DanWei[]=  {   1,    1,     1,     1,     1,     1,    2,    2,     2,    2,     2,    
+             - 2,     2,     2,     2,   3,    3,    3,    3,    3,    3};
+ 1063          
+ 1064          /***************** ÉèÖÃ²ÉÑùÊ±¼äº¯Êý *****************************/
+ 1065          void  SetSampleTime(void)
+ 1066          {
+ 1067   1        u16 j;
+ 1068   1      
+ 1069   1           if(SampleIndex <= 5) ADCCFG = RES_FMT + 0; // ADC CLOCK = 20MHz @2us/sample,  ADC CLOCK = SYSclk/2/(n+
+             -1), ×ª»»ÐèÒª 28 ADC CLOCK
+ 1070   1        else if(SampleIndex == 6) ADCCFG = RES_FMT + 1; // ADC CLOCK = 10MHz @4us/sample,  ADC CLOCK = SYSclk/2/
+             -(n+1)
+ 1071   1        else if(SampleIndex == 7) ADCCFG = RES_FMT + 3; // ADC CLOCK =  5MHz @8us/sample,  ADC CLOCK = SYSclk/2/
+             -(n+1)
+ 1072   1        else            ADCCFG = RES_FMT + 9; // ADC CLOCK =  2MHz >=20us/sample, ADC CLOCK = SYSclk/2/(n+1)
+ 1073   1      
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 18  
+
+ 1074   1           if(SampleIndex <= 8) AutoTime = 100/8; //Í¬²½³¬Ê±100ms    <=5ms/div    <=60ms/frme
+ 1075   1        else if(SampleIndex == 9) AutoTime = 200/8; //Í¬²½³¬Ê±200ms    10ms/div     ==120ms/frme
+ 1076   1        else if(SampleIndex == 10)  AutoTime = 400/8; //Í¬²½³¬Ê±500ms    20ms/div     ==240ms/frme
+ 1077   1        else if(SampleIndex == 11)  AutoTime = 800/8; //Í¬²½³¬Ê±800ms    50ms/div     ==600ms/frme
+ 1078   1        else if(SampleIndex == 12)  AutoTime = 1600/8;  //Í¬²½³¬Ê±800ms    100ms/div    ==600ms/frme
+ 1079   1        else            AutoTime = 2000/8;  //Í¬²½³¬Ê±1200ms   >=200ms/div    >=1200ms/frme
+ 1080   1      
+ 1081   1        if(TrigMode == 0) AutoTimeCnt = AutoTime; //×Ô¶¯Ä£Ê½
+ 1082   1      
+ 1083   1        if(SampleIndex <= 10) //50us 100us 200us/DIV¾ùÓÃ2us²ÉÑù, 500us~20ms/DIVÊ¹ÓÃ10±¶²ÉÑù
+ 1084   1        {
+ 1085   2          j = SampleTimeTable[SampleIndex];
+ 1086   2          TR0 = 0;  //Í£Ö¹¼ÆÊý
+ 1087   2          B_sample_ms = 0;
+ 1088   2          TH0 = (u8)((65536UL - j*D_MAIN_CLOCK) / 256);
+ 1089   2          TL0 = (u8)((65536UL - j*D_MAIN_CLOCK) % 256);
+ 1090   2        }
+ 1091   1        
+ 1092   1        else if(SampleIndex <= 13)  // 50ms 100ms 200ms/DIVÊ¹ÓÃ10±¶²ÉÑù
+ 1093   1        {
+ 1094   2          j = SampleTimeTable[SampleIndex];
+ 1095   2          TR0 = 0;  //Í£Ö¹¼ÆÊý
+ 1096   2          SampleTime  = 1;  //ÒÀ¾ÉÊÇÒ»´ÎÖÐ¶Ï²ÉÑùÒ»´Î
+ 1097   2          sample_cnt  = 1;
+ 1098   2          B_sample_ms = 1;  //ÊµÊ±É¨ÃèÏÔÊ¾
+ 1099   2          TH0 = (u8)((65536UL - j*D_MAIN_CLOCK) / 256);
+ 1100   2          TL0 = (u8)((65536UL - j*D_MAIN_CLOCK) % 256);
+ 1101   2        }
+ 1102   1      
+ 1103   1        else    // >=500ms/DIV, ÊµÊ±É¨Ãè, ¶¨Ê±Æ÷ÖÐ¶Ï¹Ì¶¨Îª1ms
+ 1104   1        {
+ 1105   2          j = SampleTimeTable[SampleIndex];
+ 1106   2          TR0 = 0;  //Í£Ö¹¼ÆÊý
+ 1107   2          SampleTime  = j;  //Ò»¸ö²ÉÑùµã¶ÔÓ¦µÄÖÐ¶Ï´ÎÊý
+ 1108   2          sample_cnt  = j;
+ 1109   2          B_sample_ms = 1;  //ÊµÊ±É¨ÃèÏÔÊ¾
+ 1110   2          TH0 = (u8)((65536UL - 1000*D_MAIN_CLOCK) / 256);  //1msÖÐ¶Ï
+ 1111   2          TL0 = (u8)((65536UL - 1000*D_MAIN_CLOCK) % 256);
+ 1112   2        }
+ 1113   1      }
+ 1114          
+ 1115          /***************** ÏÔÊ¾Ê±»ùº¯Êý *****************************/
+ 1116          void  ShowTimeBase(void)
+ 1117          {
+ 1118   1        TxCnt = 0;
+ 1119   1        TX_write2buff(0xfe);  //ÃüÁî¿ªÊ¼
+ 1120   1        TX_write2buff(0x02);  //ÉÏ´«Ê±»ù²ÎÊý: FE 02 DATA0 DATA1 DATA2 FF
+ 1121   1        TX_write2buff((u8)(T_Time_div[SampleIndex] >> 8));
+ 1122   1        TxData255((u8)T_Time_div[SampleIndex]);
+ 1123   1        TX_write2buff(T_Time_DanWei[SampleIndex]);  //Ê±¼äµ¥Î»: 0--ns, 1--us, 2--ms, 3--s
+ 1124   1        TX_write2buff(0xff);  //ÃüÁî½áÊø
+ 1125   1        TrigTx(); //´¥·¢·¢ËÍ
+ 1126   1      }
+ 1127          
+ 1128          
+ 1129            //InputIndex     0   1    2    3     4    5      6    7
+ 1130            //InputIndex+3                 3     4    5      6    7      8    9  10   11   12   13
+ 1131            // V/DIV        10V  5V  2.5V  1V  500mV 250mV 100mV 50mV
+ 1132          u16 const T_VOLTAGE[]={ 10000, 5000, 2500, 1000, 500, 250, 100, 50};
+ 1133          
+ 1134          /***************** ÏÔÊ¾´¹Ö±µçÑ¹µµÎ» V/DIV º¯Êý *****************************/
+ 1135          void  ShowVoltage(void)
+ 1136          {
+ 1137   1        u8  i;
+ 1138   1        TxCnt = 0;
+ 1139   1        TX_write2buff(0xfe);  //ÃüÁî¿ªÊ¼
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 19  
+
+ 1140   1        TX_write2buff(0x03);  //ÉÏ´«´¹Ö±·ù¶È²ÎÊý: FE 03 DATA0 DATA1 DATA2 FF
+ 1141   1        TX_write2buff((u8)(T_VOLTAGE[InputIndex] >> 8));
+ 1142   1        TxData255((u8)T_VOLTAGE[InputIndex]);
+ 1143   1        TX_write2buff(0x01);  //µçÑ¹µ¥Î»: mV
+ 1144   1        TX_write2buff(0xff);  //ÃüÁî½áÊø
+ 1145   1        TrigTx(); //´¥·¢·¢ËÍ
+ 1146   1      
+ 1147   1        i = T_V_GAIN[InputIndex];
+ 1148   1        if(i & 0x04)  P_V_C = 1;  else P_V_C = 0;
+ 1149   1        if(i & 0x02)  P_V_B = 1;  else P_V_B = 0;
+ 1150   1        if(i & 0x01)  P_V_A = 1;  else P_V_A = 0;
+ 1151   1      }
+ 1152          
+ 1153          /***************** ÏÔÊ¾´¥·¢Ä£Ê½º¯Êý *****************************/
+ 1154          void  ShowPhase(void)
+ 1155          {
+ 1156   1        TxCnt = 0;
+ 1157   1        TX_write2buff(0xfe);  //ÃüÁî¿ªÊ¼
+ 1158   1        TX_write2buff(0x05);  //ÉÏ´«´¥·¢·½Ê½: FE 05 DATA0 FF
+ 1159   1        if(B_TrigPhase) TX_write2buff(0x00);  //  B_TrigPhase=1:ÉÏÉýÑØ, 0:ÏÂ½µÑØ.
+ 1160   1        else      TX_write2buff(0x01);  //  DAT0£º´¥·¢Ä£Ê½¡£0--ÉÏÉýÑØ£¬1--ÏÂ½µÑØ¡£
+ 1161   1        TX_write2buff(0xff);  //ÃüÁî½áÊø
+ 1162   1        TrigTx(); //´¥·¢·¢ËÍ
+ 1163   1      }
+ 1164          
+ 1165          //========================================================================
+ 1166          // º¯Êý: u8 Timer3_Config(u8 t, u32 reload)
+ 1167          // ÃèÊö: timer3³õÊ¼»¯º¯Êý.
+ 1168          // ²ÎÊý:      t: ÖØ×°ÖµÀàÐÍ, 0±íÊ¾ÖØ×°µÄÊÇÏµÍ³Ê±ÖÓÊý, ÆäÓàÖµ±íÊ¾ÖØ×°µÄÊÇÊ±¼ä(us).
+ 1169          //       reload: ÖØ×°Öµ.
+ 1170          // ·µ»Ø: 0: ³õÊ¼»¯ÕýÈ·,  1: ÖØ×°Öµ¹ý´ó, ³õÊ¼»¯´íÎó.
+ 1171          // °æ±¾: V1.0, 2018-12-20
+ 1172          //========================================================================
+ 1173          u8  Timer3_Config(u8 t, u32 reload) //t=0: reloadÖµÊÇÖ÷Ê±ÖÓÖÜÆÚÊý,  t=1: reloadÖµÊÇÊ±¼ä(µ¥Î»us)
+ 1174          {
+ 1175   1        P_SW2 |= 0x80;    //SFR enable   
+ 1176   1        T4T3M &= 0xf0;    //Í£Ö¹¼ÆÊý, ¶¨Ê±Ä£Ê½, 12TÄ£Ê½, ²»Êä³öÊ±ÖÓ
+ 1177   1      
+ 1178   1        if(t != 0)  reload = (u32)(((float)MAIN_Fosc * (float)reload)/1000000UL); //ÖØ×°µÄÊÇÊ±¼ä(us), ¼ÆËãËùÐèÒªµ
+             -ÄÏµÍ³Ê±ÖÓÊý.
+ 1179   1        if(reload >= (65536UL * 12))  return 1; //Öµ¹ý´ó, ·µ»Ø´íÎó
+ 1180   1        if(reload < 65536UL)  T4T3M |=  (1<<1); //1T mode
+ 1181   1        else  reload = reload / 12; //12T mode
+ 1182   1        reload = 65536UL - reload;
+ 1183   1        T3H = (u8)(reload >> 8);
+ 1184   1        T3L = (u8)(reload);
+ 1185   1      
+ 1186   1      //  T3T4PIN = 0x01;   //Ñ¡ÔñIO, 0x00: T3--P0.4, T3CLKO--P0.5, T4--P0.6, T4CLKO--P0.7;    0x01: T3--P0.0, T3
+             -CLKO--P0.1, T4--P0.2, T4CLKO--P0.3;
+ 1187   1        IE2   |=  (1<<5); //ÔÊÐíÖÐ¶Ï
+ 1188   1        T4T3M |=  (1<<3); //¿ªÊ¼ÔËÐÐ
+ 1189   1        return 0;
+ 1190   1      }
+ 1191          
+ 1192          #include  "SineTable.h"
+ 1193          u8  SineIndex;
+ 1194          //========================================================================
+ 1195          // º¯Êý: void Timer3_ISR(void) interrupt TMR3_VECTOR
+ 1196          // ÃèÊö:  timer3ÖÐ¶Ïº¯Êý.
+ 1197          // ²ÎÊý: none.
+ 1198          // ·µ»Ø: none.
+ 1199          // °æ±¾: V1.0, 2018-12-20
+ 1200          //========================================================================
+ 1201          void Timer3_ISR(void) interrupt TMR3_VECTOR
+ 1202          {
+ 1203   1        PWMA_CCR2L = T_SIN[SineIndex];    //P1.3Êä³ö100HzÕýÏÒ²¨
+C251 COMPILER V5.60.0,  OSCOPE-V2-8bit-CDC                                                 19/08/22  14:11:32  PAGE 20  
+
+ 1204   1        if(++SineIndex == 50) SineIndex = 0;
+ 1205   1      
+ 1206   1        if(++cnt_8ms == (8*5))
+ 1207   1        {
+ 1208   2          cnt_8ms = 0;
+ 1209   2          B_8ms = 1;
+ 1210   2        }
+ 1211   1        if(++cnt_32ms == (32*5))
+ 1212   1        {
+ 1213   2          cnt_32ms = 0;
+ 1214   2          B_32ms = 1;
+ 1215   2          B_32ms_rtn = 1;
+ 1216   2        }
+ 1217   1      }
+ 1218          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =      3964     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =      4008     ------
+  xdata-const size     =    ------     ------
+  edata size           =       888          1
+  bit size             =        12     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =       260     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

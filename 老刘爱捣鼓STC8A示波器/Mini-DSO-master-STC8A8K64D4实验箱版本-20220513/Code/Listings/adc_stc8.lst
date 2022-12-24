@@ -1,0 +1,425 @@
+C51 COMPILER V9.59.0.0   ADC_STC8                                                          05/13/2022 14:16:08 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE ADC_STC8
+OBJECT MODULE PLACED IN .\Objects\adc_stc8.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE adc_stc8.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Lis
+                    -tings\adc_stc8.lst) OBJECT(.\Objects\adc_stc8.obj)
+
+line level    source
+
+   1          /*
+   2              adc_stc8.c
+   3          
+   4              Sampling with ADC built in MCU
+   5              
+   6              Copyright (c) 2020 Creative Lau (creativelaulab@gmail.com)
+   7          
+   8              Permission is hereby granted, free of charge, to any person obtaining a copy
+   9              of this software and associated documentation files (the "Software"), to deal
+  10              in the Software without restriction, including without limitation the rights
+  11              to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  12              copies of the Software, and to permit persons to whom the Software is
+  13              furnished to do so, subject to the following conditions:
+  14          
+  15              The above copyright notice and this permission notice shall be included in all
+  16              copies or substantial portions of the Software.
+  17          
+  18              THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  19              IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  20              FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  21              AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  22              LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  23              OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  24              SOFTWARE.
+  25          */
+  26          
+  27          #include "adc_stc8.h"
+  28          
+  29          #ifdef STC8
+  30          
+  31          /* scale_h: Time scale 500ms, 200ms, 100ms, 50ms, 20ms, 10ms, 5ms, 2ms, 1ms, 500us, 200us, 100us */
+  32          void ADCInit(uint8 scale_h)
+  33          {
+  34   1          uint8 ADC_SPEED;
+  35   1      
+  36   1          switch (scale_h)
+  37   1          {
+  38   2          case 0: //500ms
+  39   2              ADC_SPEED = ADC_SPEED_512;
+  40   2              break;
+  41   2      
+  42   2          case 1: //200ms
+  43   2              ADC_SPEED = ADC_SPEED_512;
+  44   2              break;
+  45   2      
+  46   2          case 2: //100ms
+  47   2              ADC_SPEED = ADC_SPEED_512;
+  48   2              break;
+  49   2      
+  50   2          case 3: //50ms
+  51   2              ADC_SPEED = ADC_SPEED_512;
+  52   2              break;
+  53   2      
+  54   2          case 4: //20ms
+C51 COMPILER V9.59.0.0   ADC_STC8                                                          05/13/2022 14:16:08 PAGE 2   
+
+  55   2              ADC_SPEED = ADC_SPEED_512;
+  56   2              break;
+  57   2      
+  58   2          case 5: //10ms
+  59   2              ADC_SPEED = ADC_SPEED_512;
+  60   2              break;
+  61   2      
+  62   2          case 6: //5ms
+  63   2              ADC_SPEED = ADC_SPEED_512;
+  64   2              break;
+  65   2      
+  66   2          case 7: //2ms
+  67   2              ADC_SPEED = ADC_SPEED_512;
+  68   2              break;
+  69   2      
+  70   2          case 8: //1ms
+  71   2              ADC_SPEED = ADC_SPEED_352;
+  72   2              break;
+  73   2      
+  74   2          case 9: //500us
+  75   2              ADC_SPEED = ADC_SPEED_192;
+  76   2              break;
+  77   2      
+  78   2          case 10: //200us
+  79   2              ADC_SPEED = ADC_SPEED_32;
+  80   2              break;
+  81   2      
+  82   2          case 11: //100us
+  83   2              ADC_SPEED = ADC_SPEED_32;
+  84   2              break;
+  85   2          }
+  86   1      
+  87   1          ADCCFG = RESFMT | ADC_SPEED; //½á¹ûÓÒ¶ÔÆë£¬ÉèÖÃ ADC Ê±ÖÓÎªÏµÍ³Ê±ÖÓ/2/16/16
+  88   1          ADC_CONTR = ADC_POWER;       //Ê¹ÄÜ ADC Ä£¿é
+  89   1          ADCEXCFG = 0x07;             //ADC×ª»»16´Î²¢È¡Æ½¾ùÖµ
+  90   1          Delay5ms();                  //ADCÉÏµç²¢ÑÓÊ±
+  91   1      }
+  92          
+  93          uint16 ADCRead(uint8 chx)
+  94          {
+  95   1          uint16 res;
+  96   1          ADC_RES = 0;            //Çå³ý½á¹û¼Ä´æÆ÷
+  97   1          ADC_RESL = 0;           //Çå³ý½á¹û¼Ä´æÆ÷
+  98   1          ADC_CONTR &= 0xF0;      //Ñ¡ÔñADCÊäÈëÍ¨µÀ
+  99   1          ADC_CONTR |= chx;       //Ñ¡ÔñADCÊäÈëÍ¨µÀ
+ 100   1          ADC_CONTR |= ADC_START; //Æô¶¯ AD ×ª»»
+ 101   1          _nop_();
+ 102   1          _nop_();
+ 103   1      
+ 104   1          while (!(ADC_CONTR & ADC_FLAG))
+ 105   1              ; //²éÑ¯ ADC Íê³É±êÖ¾
+ 106   1      
+ 107   1          ADC_CONTR &= ~ADC_FLAG;          //ÇåÍê³É±êÖ¾
+ 108   1          res = (ADC_RES << 8) | ADC_RESL; //¶ÁÈ¡ ADC ½á¹û
+ 109   1          return res;
+ 110   1      }
+ 111          
+ 112          uint16 GetBGV(void)
+ 113          {
+ 114   1          uint16 BGV;
+ 115   1          BGV = BGV_ADR;
+ 116   1      //    BGV = (uint16 code *)BGV_ADR;
+C51 COMPILER V9.59.0.0   ADC_STC8                                                          05/13/2022 14:16:08 PAGE 3   
+
+ 117   1          return BGV;
+ 118   1      }
+ 119          
+ 120          uint16 GetADC_CHX(uint8 chx)
+ 121          {
+ 122   1          uint16 ADCx;
+ 123   1      //    uint8 i;
+ 124   1      
+ 125   1          ADCInit(0); //ADC ³õÊ¼»¯
+ 126   1      
+ 127   1          //Í¨¹ýADCµÄchxÍ¨µÀ¶ÁÈ¡BandgapµçÑ¹µÄADC²âÁ¿Öµ
+ 128   1          ADCRead(chx); //Ç°Á½¸öÊý¾Ý¶ªÆú
+ 129   1          ADCRead(chx);
+ 130   1          ADCx = ADCRead(chx);
+ 131   1      
+ 132   1      //    for (i = 0; i < 16; i++)
+ 133   1      //    {
+ 134   1      //        ADCx += ADCRead(chx);
+ 135   1      //    }
+ 136   1      
+ 137   1      //    ADCx >>= 4; //È¡Æ½¾ùÖµ
+ 138   1          return ADCx;
+ 139   1      }
+ 140          
+ 141          uint16 GetVoltage(uint8 chx, uint16 lsb)
+ 142          {
+ 143   1          uint16 ADCbg;
+ 144   1          uint16 BGV;
+ 145   1          uint16 ADCx;
+ 146   1          uint16 Vx;
+ 147   1      
+ 148   1          ADCInit(0); //ADC ³õÊ¼»¯
+ 149   1      
+ 150   1          //Í¨¹ýADCµÄµÚ16Í¨µÀ¶ÁÈ¡BandgapµçÑ¹µÄADCÆ½¾ùÖµ
+ 151   1          ADCbg = GetADC_CHX(ADC_CHS_BG);
+ 152   1      
+ 153   1          //Í¨¹ýADCµÄchxÍ¨µÀ¶ÁÈ¡Íâ²¿ÊäÈëµçÑ¹µÄADCÆ½¾ùÖµ
+ 154   1          ADCx = GetADC_CHX(chx);
+ 155   1      
+ 156   1          //Í¨¹ý¹«Ê½¼ÆËãÍâ²¿ÊäÈëµÄÊµ¼ÊµçÑ¹Öµ
+ 157   1          BGV = GetBGV();
+ 158   1          Vx = (uint32)BGV * ADCx * lsb / ADCbg / 100;
+ 159   1          return Vx;
+ 160   1      }
+ 161          
+ 162          //      ADCRead(chx) Timing:500ms, 200ms, 100ms, 50ms, 20ms, 10ms, 5ms, 2ms, 1ms, 500us, 200us, 100us
+ 163          //      ÆÁÄ»µÄºáÏò¹²4¸ñ£¬Ã¿¸ñ´ú±íÒ»¸öÊ±¼ä·¶Î§£¬Ã¿¸ñ25¸ö²ÉÑùµã
+ 164          //  24MHz
+ 165          //      ADC_SPEED_512 28us
+ 166          //      ADC_SPEED_480 26.2us
+ 167          //      ADC_SPEED_448 25us
+ 168          //      ADC_SPEED_416 23.8us
+ 169          //      ADC_SPEED_384 22us
+ 170          //      ADC_SPEED_352 20us
+ 171          //      ADC_SPEED_320 18us
+ 172          //      ADC_SPEED_288 17us
+ 173          //      ADC_SPEED_256 15us
+ 174          //      ADC_SPEED_224 14us
+ 175          //      ADC_SPEED_192 12us
+ 176          //      ADC_SPEED_160 10.4us
+ 177          //      ADC_SPEED_128 9us
+ 178          //      ADC_SPEED_96 7us
+C51 COMPILER V9.59.0.0   ADC_STC8                                                          05/13/2022 14:16:08 PAGE 4   
+
+ 179          //      ADC_SPEED_64 5.6us
+ 180          //      ADC_SPEED_32 4us
+ 181          //
+ 182          //  27MHz
+ 183          //      ADC_SPEED_512 26us
+ 184          //      ADC_SPEED_352 19us
+ 185          //      ADC_SPEED_192 11us
+ 186          //      ADC_SPEED_32 4us
+ 187          void switch_Dealy(uint8 scale_h)
+ 188          {
+ 189   1          switch (scale_h)
+ 190   1          {
+ 191   2              //500ms ADC_SPEED_512
+ 192   2          case 0:
+ 193   2              Delay19971us();
+ 194   2              break;
+ 195   2      
+ 196   2              //200ms ADC_SPEED_512
+ 197   2          case 1:
+ 198   2              Delay7971us();
+ 199   2              break;
+ 200   2      
+ 201   2              //100ms ADC_SPEED_512
+ 202   2          case 2:
+ 203   2              Delay3971us();
+ 204   2              break;
+ 205   2      
+ 206   2              //50ms ADC_SPEED_512
+ 207   2          case 3:
+ 208   2              Delay1971us();
+ 209   2              break;
+ 210   2      
+ 211   2              //20ms ADC_SPEED_512
+ 212   2          case 4:
+ 213   2              Delay771us();
+ 214   2              break;
+ 215   2      
+ 216   2              //10ms ADC_SPEED_512
+ 217   2          case 5:
+ 218   2              Delay371us();
+ 219   2              break;
+ 220   2      
+ 221   2              //5ms ADC_SPEED_512
+ 222   2          case 6:
+ 223   2              Delay171us();
+ 224   2              break;
+ 225   2      
+ 226   2              //2ms ADC_SPEED_512
+ 227   2          case 7:
+ 228   2              Delay51us();
+ 229   2              break;
+ 230   2      
+ 231   2              //1ms ADC_SPEED_352
+ 232   2          case 8:
+ 233   2              Delay18us();
+ 234   2              break;
+ 235   2      
+ 236   2              //500us ADC_SPEED_192
+ 237   2          case 9:
+ 238   2              Delay6us();
+ 239   2              break;
+ 240   2      
+C51 COMPILER V9.59.0.0   ADC_STC8                                                          05/13/2022 14:16:08 PAGE 5   
+
+ 241   2              //200us ADC_SPEED_32
+ 242   2          case 10:
+ 243   2              /* Î¢µ÷²ÉÑùÊ±¼ä¼ä¸ô
+ 244   2                 fine tuning the delay */
+ 245   2              _nop_();
+ 246   2              //_nop_();
+ 247   2              break;
+ 248   2      
+ 249   2              //100us ADC_SPEED_32
+ 250   2          case 11:
+ 251   2      
+ 252   2              break;
+ 253   2          }
+ 254   1      }
+ 255          
+ 256          uint16 *GetWaveADC(uint8 chx, uint8 scale_h)
+ 257          {
+ 258   1          uint8 i, j;
+ 259   1          static uint16 ADCSampling[SAMPLE_NUM];
+ 260   1          uint16 ADCPreSampling[PRE_BUF_NUM + 1]; //µ¥´Î´¥·¢Ô¤»º´æ£¬ÓÐÐ§²ÉÑùµãPRE_BUF_NUM¸ö£¬¶à³öµÄµÚÒ»¸öÎ»ÖÃÓÃÓ
+             -Ú¸´ÖÆ×îºóÒ»¸öÎ»ÖÃµÄÖµ£¬×é³ÉÑ­»·»º´æ
+ 261   1      
+ 262   1          ADCComplete = 0; //ÇåÁã²ÉÑùÍê³É±êÖ¾
+ 263   1          if (ADCInterrupt)
+ 264   1              return ADCSampling;
+ 265   1          memset(ADCSampling, 0x00, SAMPLE_NUM * 2);
+ 266   1          memset(ADCPreSampling, 0x00, (PRE_BUF_NUM + 1) * 2);
+ 267   1          //BGV = GetBGV(); //»ñÈ¡²Î¿¼µçÑ¹Öµ
+ 268   1          ADCbg = GetADC_CHX(ADC_CHS_BG);                         //»ñÈ¡²Î¿¼ADCÖµ
+ 269   1          TriggerADC = Convert_mv_ADC(TriLevel, BGV, ADCbg, Lsb); //½«ÓÃ»§Éè¶¨µÄ³ö·¢µçÑ¹Öµ×ª»»ÎªADCÖµ
+ 270   1      
+ 271   1          //³õ´Î´ò¿ªÄÚ²¿A/D×ª»»Ä£ÄâµçÔ´£¬ÐèÊÊµ±ÑÓÊ±£¬µÈÄÚ²¿Ä£ÄâµçÔ´ÎÈ¶¨ºó£¬ÔÙÆô¶¯A/D×ª»»
+ 272   1          ADCInit(scale_h);
+ 273   1          //Í¨¹ýADCµÄµÚxÍ¨µÀ¶ÁÈ¡Íâ²¿ÊäÈëµçÑ¹µÄADC²âÁ¿Öµ
+ 274   1          ADCRead(chx); //Ç°Á½¸öÊý¾Ý¶ªÆú
+ 275   1          ADCRead(chx);
+ 276   1      
+ 277   1          //Ê±¼ä¼ä¸ô100us²»Ö§³Öµ¥´Î´¥·¢£¬²ÉÑù¹ý³ÌÖÐ²»ÄÜÓÐ¶àÓàµÄ´úÂë·ñÔò´ï²»µ½4usÃ¿´ÎµÄËÙ¶È£¬ËùÒÔµ¥¶À·ÖÁ¢³öÀ´
+ 278   1          if (scale_h == 11) //100 us
+ 279   1          {
+ 280   2              P_Ready = 1; //¿ªÊ¼²ÉÑù£¬µãÁÁÖ¸Ê¾µÆ
+ 281   2              for (i = 0; i < SAMPLE_NUM; i++)
+ 282   2              {
+ 283   3                  if (ADCInterrupt)
+ 284   3                      return ADCSampling;
+ 285   3                  ADCSampling[i] = ADCRead(chx);
+ 286   3      #ifdef DEBUG
+                          P15 = ~P15;
+              #endif
+ 289   3              }
+ 290   2              P_Ready = 0; //½áÊø²ÉÑù£¬Ï¨ÃðÖ¸Ê¾µÆ
+ 291   2          }
+ 292   1      
+ 293   1          /* µ¥´Î´¥·¢»òÆÕÍ¨´¥·¢
+ 294   1             Single or Normal Trigger Mode */
+ 295   1          else if (TriMode)
+ 296   1          {
+ 297   2              P_Ready = 0;                       //Ô¤»º´æ£¬Ï¨ÃðÖ¸Ê¾µÆ£¬Íê³ÉÔ¤»º´æÇ°²»ÒªÊäÈë´¥·¢ÐÅºÅ£¬»á´í¹ý´¥·¢
+ 298   2              for (j = 1; j <= PRE_BUF_NUM; j++) //Ô¤»º´æPRE_BUF_NUM¸ö²ÉÑùµã£¬Ô¤»º´æµÄµÚÒ»¸öÎ»ÖÃ±£Áô£¬ÓÃÓÚ´æ´¢ºÍ
+             -Ô¤»º´æ×îºóÒ»¸öÎ»ÖÃÏàÍ¬µÄÖµ£¬×é³É»·ÐÎ»º´æ
+ 299   2              {
+ 300   3                  if (ADCInterrupt)
+C51 COMPILER V9.59.0.0   ADC_STC8                                                          05/13/2022 14:16:08 PAGE 6   
+
+ 301   3                      return ADCSampling;
+ 302   3      
+ 303   3                  Delay3us();            //ÐÞÕýÑ­»·²ÉÑùµÄÊ±¼ä¼ä¸ô±ÈÁ¬Ðø²ÉÑùÂý3us
+ 304   3                  switch_Dealy(scale_h); //²ÉÑùÑÓÊ±
+ 305   3                  ADCPreSampling[j] = ADCRead(chx);
+ 306   3      #ifdef DEBUG
+                          P15 = ~P15;
+              #endif
+ 309   3              }
+ 310   2              P_Ready = 1; //Ô¤»º´æ½áÊø£¬µãÁÁÖ¸Ê¾µÆ£¬¿ÉÊäÈë´¥·¢ÐÅºÅ
+ 311   2      
+ 312   2              //Ñ­»·»º´æ´¥·¢Ç°µÄPRE_BUF_NUM¸ö²ÉÑùµã£¬²¢¼ì²â²ÉÑùµãÊÇ·ñÂú×ã´¥·¢Ìõ¼þ
+ 313   2              while (1)
+ 314   2              {
+ 315   3                  if (ADCInterrupt)
+ 316   3                      return ADCSampling;
+ 317   3      
+ 318   3                  //Ô¤»º´æÒç³öÔòÖÃ1£¬²¢°Ñ×îºóÒ»¸ö²ÉÑùÖµ¸´ÖÆµ½µÚÒ»¸öÎ»ÖÃ
+ 319   3                  if (j > PRE_BUF_NUM)
+ 320   3                  {
+ 321   4                      j = 1;
+ 322   4                      ADCPreSampling[0] = ADCPreSampling[PRE_BUF_NUM];
+ 323   4                  }
+ 324   3                  switch_Dealy(scale_h); //²ÉÑùÑÓÊ±
+ 325   3                  ADCPreSampling[j] = ADCRead(chx);
+ 326   3                  if (GetTriggerPos(ADCPreSampling[j - 1], ADCPreSampling[j], TriggerADC, TriSlope)) //ÊÇ·ñÂú×ã´
+             -¥·¢Ìõ¼þ
+ 327   3                  {
+ 328   4                      P_Ready = 0; //´¥·¢³É¹¦£¬Ìø³öwhileÑ­»·£¬Ï¨ÃðÖ¸Ê¾µÆ
+ 329   4                      break;
+ 330   4                  }
+ 331   3                  j++;
+ 332   3      #ifdef DEBUG
+                          P15 = ~P15;
+              #endif
+ 335   3              }
+ 336   2      
+ 337   2              //¼ÌÐø²ÉÑùAFT_BUF_NUM¸ö²ÉÑùµã
+ 338   2              for (i = 0; i < AFT_BUF_NUM; i++)
+ 339   2              {
+ 340   3                  if (ADCInterrupt)
+ 341   3                      return ADCSampling;
+ 342   3      
+ 343   3                  Delay3us();            //ÐÞÕýÑ­»·²ÉÑùµÄÊ±¼ä¼ä¸ô±ÈÁ¬Ðø²ÉÑùÂý3us
+ 344   3                  switch_Dealy(scale_h); //²ÉÑùÑÓÊ±
+ 345   3                  ADCSampling[i + PRE_BUF_NUM] = ADCRead(chx);
+ 346   3      #ifdef DEBUG
+                          P15 = ~P15;
+              #endif
+ 349   3              }
+ 350   2      
+ 351   2              //½«Ç°PRE_BUF_NUM¸öºÍºóPRE_BUF_NUM¸ö²ÉÑùµã×éºÏ³ÉÍêÕû²¨ÐÎ
+ 352   2              for (i = 0; i < PRE_BUF_NUM; i++) //Ô¤»º´æÖÐµÚÒ»¸öºÍ×îºóÒ»¸ö²ÉÑùÖµÏàµÈ£¬ÉáµôµÚÒ»¸öÖµ£¬½«Ê£ÓàPRE_BU
+             -F_NUM-1¸ö²ÉÑùµã°´²ÉÑùË³ÐòÅÅÐò£¬×÷ÎªADCSamplingµÄÇ°PRE_BUF_NUM-1¸ö²ÉÑùµã
+ 353   2              {
+ 354   3                  if (ADCInterrupt)
+ 355   3                      return ADCSampling;
+ 356   3                  if (++j > PRE_BUF_NUM) //Ô¤»º´æÒç³ö£¬Ìø×ªµ½Ô¤»º´æµÚ¶þ¸öÎ»ÖÃ
+ 357   3                      j = 1;
+ 358   3      
+ 359   3                  ADCSampling[i] = ADCPreSampling[j];
+ 360   3              }
+C51 COMPILER V9.59.0.0   ADC_STC8                                                          05/13/2022 14:16:08 PAGE 7   
+
+ 361   2          }
+ 362   1      
+ 363   1          /* ×Ô¶¯´¥·¢
+ 364   1             Auto Trigger Mode */
+ 365   1          else
+ 366   1          {
+ 367   2              P_Ready = 1; //¿ªÊ¼²ÉÑù£¬µãÁÁÖ¸Ê¾µÆ
+ 368   2              for (i = 0; i < SAMPLE_NUM; i++)
+ 369   2              {
+ 370   3                  if (ADCInterrupt)
+ 371   3                      return ADCSampling;
+ 372   3                  ADCSampling[i] = ADCRead(chx);
+ 373   3                  Delay3us();            //Ñ­»·²ÉÑùµÄÊ±¼ä¼ä¸ô±ÈÁ¬Ðø²ÉÑùÂý3us
+ 374   3                  switch_Dealy(scale_h); //²ÉÑùÑÓÊ±
+ 375   3      #ifdef DEBUG
+                          P15 = ~P15;
+              #endif
+ 378   3              }
+ 379   2              P_Ready = 0; //²ÉÑù½áÊø£¬Ï¨ÃðÖ¸Ê¾µÆ
+ 380   2          }
+ 381   1          ADCComplete = 1; //ÖÃÎ»²ÉÑùÍê³É±êÖ¾
+ 382   1          return ADCSampling;
+ 383   1      }
+ 384          
+ 385          #endif
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    999    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    440     137
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

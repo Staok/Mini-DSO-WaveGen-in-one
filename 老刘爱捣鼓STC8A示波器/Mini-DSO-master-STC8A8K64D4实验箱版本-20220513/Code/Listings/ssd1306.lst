@@ -1,0 +1,698 @@
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE SSD1306
+OBJECT MODULE PLACED IN .\Objects\ssd1306.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ssd1306.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\List
+                    -ings\ssd1306.lst) OBJECT(.\Objects\ssd1306.obj)
+
+line level    source
+
+   1          /*
+   2              ssd1306.c
+   3          
+   4              Driver for SSD1306 IC with SPI Interface
+   5          
+   6              Copyright (c) 2020 Creative Lau (creativelaulab@gmail.com)
+   7          
+   8              Permission is hereby granted, free of charge, to any person obtaining a copy
+   9              of this software and associated documentation files (the "Software"), to deal
+  10              in the Software without restriction, including without limitation the rights
+  11              to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  12              copies of the Software, and to permit persons to whom the Software is
+  13              furnished to do so, subject to the following conditions:
+  14          
+  15              The above copyright notice and this permission notice shall be included in all
+  16              copies or substantial portions of the Software.
+  17          
+  18              THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  19              IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  20              FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  21              AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  22              LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  23              OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  24              SOFTWARE.
+  25          
+  26              Note:
+  27          
+  28              版本：V0.2
+  29              作者：老刘爱捣鼓
+  30              时间：2020-04-24
+  31              老刘爱捣鼓（全网同名）期待您的关注！
+  32          
+  33              说明：
+  34              为Mini DSO这个项目临时编写的SSD1306 128x64驱动，并不完善
+  35              有写字符，字符串，数字，16x16中文字符，画水平线，垂直线，任意两点线段，绘制图片等功能
+  36              主要参考了Arduino中Adafruit SSD1306的库函数
+  37              采用全屏buf驱动，需占用128x8个uint8内存空间
+  38              全屏缓存操控屏幕内容比较方便，刷新速度快，但对单片机的内存大小有要求
+  39              F6x8字体来自中景园电子的DEMO
+  40          
+  41              2020-04-30
+  42              1.  更新OLED_Draw_Byte函数，修正以覆盖方式跨页写入时会同时修改两页内容，上下页的其他字符被覆盖，现在可
+             -以在任意点写入字符，不会影响上下页的内容
+  43              2.  优化算法/8改为>>3，%8改为&7
+  44              3.  修正OLED初始化错误，行模式要设置0x21和0x22设置显示范围，并用0x40设置起始行，
+  45                  0xB0-0xB7设置起始页是页面模式专用，在行模式下使用会造成设置的起始页第一次到达结尾时无法自动换页
+  46              4.  删除OLED_Set_Pos中多余的设置内存位置命令
+  47              5.  画线或像素时，置位OLED_Reverse则进行擦除
+  48          */
+  49          #include "ssd1306.h"
+  50          #include "ssd1306font.h"
+  51          
+  52          //OLED的显存
+  53          //存放格式如下.
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 2   
+
+  54          //[0]0 1 2 3 ... 127
+  55          //[1]0 1 2 3 ... 127
+  56          //[2]0 1 2 3 ... 127
+  57          //[3]0 1 2 3 ... 127
+  58          //[4]0 1 2 3 ... 127
+  59          //[5]0 1 2 3 ... 127
+  60          //[6]0 1 2 3 ... 127
+  61          //[7]0 1 2 3 ... 127
+  62          
+  63          #ifndef _swap_char
+  64          #define _swap_char(a, b) \
+  65              {                    \
+  66                  uint8 t = a;     \
+  67                  a = b;           \
+  68                  b = t;           \
+  69              }
+  70          #endif
+  71          
+  72          bit _OLED_Reverse = 0;     
+  73          bit _OLED_Overlap = 1;
+  74          uint8 _buf[WIDTH * PAGES]; //全屏缓存,横向WIDTH个像素，纵向PAGES页，页内每8个像素作为一个字节，共WIDTH * P
+             -AGES个字节
+  75          
+  76          static char _x, _y;
+  77          static uint8 _Font_Width = 6;
+  78          
+  79          /*  写命令
+  80              Write Command   */
+  81          void OLED_Write_Command(uint8 dat)
+  82          {
+  83   1          uint8 i;
+  84   1          OLED_DC_Clr();
+  85   1          OLED_CS_Clr();
+  86   1      
+  87   1          for (i = 0; i < 8; i++)
+  88   1          {
+  89   2              OLED_SCLK_Clr();
+  90   2      
+  91   2              if (dat & 0x80) //判断数据最高位是1还是0
+  92   2              {
+  93   3                  OLED_SDIN_Set();
+  94   3              }
+  95   2              else
+  96   2                  OLED_SDIN_Clr();
+  97   2      
+  98   2              OLED_SCLK_Set();
+  99   2              dat <<= 1;
+ 100   2          }
+ 101   1      
+ 102   1          OLED_CS_Set();
+ 103   1          //    OLED_DC_Set();
+ 104   1      }
+ 105          
+ 106          /*  写数据
+ 107              Write Data  */
+ 108          void OLED_Write_Data(uint8 dat)
+ 109          {
+ 110   1          uint8 i;
+ 111   1          OLED_DC_Set();
+ 112   1          OLED_CS_Clr();
+ 113   1      
+ 114   1          for (i = 0; i < 8; i++)
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 3   
+
+ 115   1          {
+ 116   2              OLED_SCLK_Clr();
+ 117   2      
+ 118   2              if (dat & 0x80) //判断数据最高位是1还是0
+ 119   2              {
+ 120   3                  OLED_SDIN_Set();
+ 121   3              }
+ 122   2              else
+ 123   2                  OLED_SDIN_Clr();
+ 124   2      
+ 125   2              OLED_SCLK_Set();
+ 126   2              dat <<= 1;
+ 127   2          }
+ 128   1      
+ 129   1          OLED_CS_Set();
+ 130   1          //    OLED_DC_Set();
+ 131   1      }
+ 132          
+ 133          /* 1：反显，0：正常
+ 134             1: Reverse, 0: Normal*/
+ 135          void OLED_Reverse(bit i)
+ 136          {
+ 137   1          _OLED_Reverse = i;
+ 138   1      }
+ 139          
+ 140          /* 绘图模式：1：叠加，0：覆盖
+ 141             Draw Mode: 1: overlap, 0: Redraw*/
+ 142          void OLED_Overlap(bit i)
+ 143          {
+ 144   1          _OLED_Overlap = i;
+ 145   1      }
+ 146          
+ 147          /* 设置ASCII字符宽度
+ 148             Set ASCII character width*/
+ 149          void OLED_SetFontWidth(uint8 w)
+ 150          {
+ 151   1          _Font_Width = w;
+ 152   1      }
+ 153          
+ 154          /* 设置内存位置x:0-127，y:0-63
+ 155             Set Ram address x:0-127, y:0-63*/
+ 156          void OLED_Set_Pos(uint8 x, uint8 y)
+ 157          {
+ 158   1          _x = x;
+ 159   1          _y = y;
+ 160   1      }
+ 161          
+ 162          /* 清除缓存内容
+ 163             Clear data in buffer*/
+ 164          void OLED_Clear(void)
+ 165          {
+ 166   1          memset(_buf, 0x00, WIDTH * PAGES);
+ 167   1      }
+ 168          
+ 169          /*  绘制字节至缓存
+ 170              offset: 字节偏移量
+ 171              reserve_hl: 保留高位或低位
+ 172              比如要写入的字节1111 1111跨了两页0001 1111 1110 0000，
+ 173              在覆盖模式下，为避免覆盖相邻的内容，在写入0001 1111时，指定offset=3，reserve_hl=1，写入1110 0000时指定
+             -指定offset=5，reserve_hl=0
+ 174              Draw byte to buffer
+ 175              offset: Offset of Byte
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 4   
+
+ 176              reserve_hl: Reserve High or Low
+ 177              If the byte 1111 1111 we want to write cross two pages 0001 1111 1110 0000
+ 178              In redraw mode, to avoid affect adjacent content. Set offset=3, reserve_hl=1, when write 0001 1111. Se
+             -t offset=5, reserve_hl=0 when write 1110 0000
+ 179              */
+ 180          void OLED_Draw_Byte(uint8 *pBuf, uint8 mask, uint8 offset, bit reserve_hl)
+ 181          {
+ 182   1          if (_OLED_Overlap)
+ 183   1          {
+ 184   2              if (_OLED_Reverse)
+ 185   2                  *pBuf |= ~mask;
+ 186   2              else
+ 187   2                  *pBuf |= mask;
+ 188   2          }
+ 189   1          else
+ 190   1          {
+ 191   2              if (_OLED_Reverse)
+ 192   2              {
+ 193   3                  /* 保留高位
+ 194   3                     Reserve upper */
+ 195   3                  if (reserve_hl) 
+ 196   3                  {
+ 197   4                      *pBuf &= (~mask) | (0xFF << (8 - offset));
+ 198   4                      *pBuf |= (~mask) & (0xFF >> offset);
+ 199   4                  }
+ 200   3                  /* 保留低位
+ 201   3                     Reserve lower */
+ 202   3                  else 
+ 203   3                  {
+ 204   4                      *pBuf &= (~mask) | (0xFF >> (8 - offset));
+ 205   4                      *pBuf |= (~mask) & (0xFF << offset);
+ 206   4                  }
+ 207   3              }
+ 208   2              else
+ 209   2              {
+ 210   3                  /* 保留高位
+ 211   3                     Reserve upper */
+ 212   3                  if (reserve_hl) 
+ 213   3                  {
+ 214   4                      *pBuf &= mask | (0xFF << (8 - offset));
+ 215   4                      *pBuf |= mask & (0xFF >> offset);
+ 216   4                  }
+ 217   3                  /* 保留低位
+ 218   3                     Reserve lower */ 
+ 219   3                  else 
+ 220   3                  {
+ 221   4                      *pBuf &= mask | (0xFF >> (8 - offset));
+ 222   4                      *pBuf |= mask & (0xFF << offset);
+ 223   4                  }
+ 224   3              }
+ 225   2          }
+ 226   1      }
+ 227          
+ 228          /*  绘制字符至缓存
+ 229              Draw char to buffer*/
+ 230          void OLED_DrawChar(uint8 x, uint8 y, uint8 chr)
+ 231          {
+ 232   1          uint8 c;
+ 233   1          uint8 i;
+ 234   1          uint8 mask;
+ 235   1          uint8 *pBuf;
+ 236   1          uint8 offset;
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 5   
+
+ 237   1          offset = y & 7;
+ 238   1          c = chr - ' ';
+ 239   1      
+ 240   1          pBuf = &_buf[(y >> 3) * WIDTH + x];
+ 241   1      
+ 242   1          for (i = 0; i < _Font_Width; i++)
+ 243   1          {
+ 244   2              mask = F6x8[c][i] << offset;
+ 245   2              OLED_Draw_Byte(pBuf++, mask, offset, 0);
+ 246   2          }
+ 247   1      
+ 248   1          if (offset && y < HEIGHT - 8)
+ 249   1          {
+ 250   2              pBuf = &_buf[((y >> 3) + 1) * WIDTH + x];
+ 251   2              for (i = 0; i < _Font_Width; i++)
+ 252   2              {
+ 253   3                  mask = F6x8[c][i] >> (8 - offset);
+ 254   3                  OLED_Draw_Byte(pBuf++, mask, 8 - offset, 1);
+ 255   3              }
+ 256   2          }
+ 257   1      }
+ 258          
+ 259          /*  绘制字符串至缓存
+ 260              Draw string to buffer   */
+ 261          void OLED_DrawString(uint8 *chr)
+ 262          {
+ 263   1          while (*chr)
+ 264   1          {
+ 265   2              if (_x > WIDTH - _Font_Width)
+ 266   2              {
+ 267   3                  _x = 0;
+ 268   3                  _y += 8;
+ 269   3              }
+ 270   2              if (_y > HEIGHT - 8)
+ 271   2              {
+ 272   3                  _y = 0;
+ 273   3              }
+ 274   2      
+ 275   2              OLED_DrawChar(_x, _y, *chr++);
+ 276   2              _x += _Font_Width;
+ 277   2          }
+ 278   1      }
+ 279          
+ 280          /* m^n */
+ 281          uint32 oled_pow(uint8 m, uint8 n) //reentrant
+ 282          {
+ 283   1          /* 常规算法 */
+ 284   1          uint32 result = 1;
+ 285   1      
+ 286   1          while (n--)
+ 287   1              result *= m;
+ 288   1      
+ 289   1          return result;
+ 290   1      
+ 291   1          /* 递归算法 需用reentrant修饰函数*/
+ 292   1          // if (n != 0)
+ 293   1          //     return (m * oled_pow(m, n - 1));
+ 294   1          // else
+ 295   1          //     return 1;
+ 296   1      }
+ 297          
+ 298          /*  绘制数字至缓存
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 6   
+
+ 299              Draw digit to buffer
+ 300              len: length of digit
+ 301              digit:  0~4294967295   */
+ 302          void OLED_DrawNum(uint32 digit, uint8 len)
+ 303          {
+ 304   1          uint8 t, i, temp;
+ 305   1          uint8 enshow = 0;
+ 306   1          i = 0;
+ 307   1          for (t = 0; t < len; t++)
+ 308   1          {
+ 309   2              temp = (digit / oled_pow(10, len - t - 1)) % 10;
+ 310   2      
+ 311   2              if (enshow == 0 && t < (len - 1))
+ 312   2              {
+ 313   3                  if (temp == 0)
+ 314   3                  {
+ 315   4                      i++;
+ 316   4                      continue;
+ 317   4                  }
+ 318   3                  else
+ 319   3                      enshow = 1;
+ 320   3              }
+ 321   2      
+ 322   2              if (_x > WIDTH - _Font_Width)
+ 323   2              {
+ 324   3                  _x = 0;
+ 325   3                  _y += 8;
+ 326   3              }
+ 327   2              if (_y > HEIGHT - 8)
+ 328   2              {
+ 329   3                  _y = 0;
+ 330   3              }
+ 331   2      
+ 332   2              OLED_DrawChar(_x + (_Font_Width) * (t - i), _y, temp + '0');
+ 333   2          }
+ 334   1          _x += len;
+ 335   1      }
+ 336          
+ 337          /*  绘制16x16汉字至缓存
+ 338              Draw 16x16 Chinese to buffer    */
+ 339          void OLED_DrwCHS_16x16(uint8 chs_no)
+ 340          {
+ 341   1          if (_x > WIDTH - 16)
+ 342   1          {
+ 343   2              _x = 0;
+ 344   2              _y += 16;
+ 345   2          }
+ 346   1          if (_y > HEIGHT - 16)
+ 347   1          {
+ 348   2              _y = 0;
+ 349   2          }
+ 350   1          OLED_DrawBMP(_x, _y, _x + 15, _y + 15, CHS_16x16[chs_no], sizeof(CHS_16x16[chs_no]) / sizeof(CHS_16x16
+             -[chs_no][0]));
+ 351   1          _x += 16;
+ 352   1      }
+ 353          
+ 354          /*  绘制一个像素至缓存
+ 355              Draw one pixel to buffer    */
+ 356          void OLED_DrawPixel(uint8 x, uint8 y)
+ 357          {
+ 358   1          uint8 mask;
+ 359   1          uint8 *pBuf;
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 7   
+
+ 360   1      
+ 361   1          if (_x > WIDTH - 1)
+ 362   1          {
+ 363   2              _x = 0;
+ 364   2              _y += 1;
+ 365   2          }
+ 366   1          if (_y > HEIGHT - 1)
+ 367   1          {
+ 368   2              _y = 0;
+ 369   2          }
+ 370   1      
+ 371   1          pBuf = &_buf[(y >> 3) * WIDTH + x];
+ 372   1          mask = 1 << (y & 7);
+ 373   1          if (_OLED_Reverse)
+ 374   1          {
+ 375   2              *pBuf++ &= ~mask;
+ 376   2          }
+ 377   1          else
+ 378   1          {
+ 379   2              *pBuf++ |= mask;
+ 380   2          }
+ 381   1      }
+ 382          
+ 383          /*  绘制两点线段至缓存
+ 384              Draw line between two points to buffer  */
+ 385          void OLED_DrawLine(uint8 x0, uint8 y0, uint8 x1, uint8 y1)
+ 386          {
+ 387   1          char dx, dy, ystep;
+ 388   1          int err;
+ 389   1          bit swapxy = 0;
+ 390   1      
+ 391   1          if (x0 > WIDTH - 1)
+ 392   1              x0 = WIDTH - 1;
+ 393   1      
+ 394   1          if (y0 > HEIGHT - 1)
+ 395   1              y0 = HEIGHT - 1;
+ 396   1      
+ 397   1          if (x1 > WIDTH - 1)
+ 398   1              x1 = WIDTH - 1;
+ 399   1      
+ 400   1          if (y1 > HEIGHT - 1)
+ 401   1              y1 = HEIGHT - 1;
+ 402   1      
+ 403   1          dx = abs(x1 - x0);
+ 404   1          dy = abs(y1 - y0);
+ 405   1      
+ 406   1          if (dy > dx)
+ 407   1          {
+ 408   2              swapxy = 1;
+ 409   2              _swap_char(dx, dy);
+ 410   2              _swap_char(x0, y0);
+ 411   2              _swap_char(x1, y1);
+ 412   2          }
+ 413   1      
+ 414   1          if (x0 > x1)
+ 415   1          {
+ 416   2              _swap_char(x0, x1);
+ 417   2              _swap_char(y0, y1);
+ 418   2          }
+ 419   1      
+ 420   1          err = dx >> 1;
+ 421   1      
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 8   
+
+ 422   1          if (y0 < y1)
+ 423   1          {
+ 424   2              ystep = 1;
+ 425   2          }
+ 426   1          else
+ 427   1          {
+ 428   2              ystep = -1;
+ 429   2          }
+ 430   1      
+ 431   1          for (; x0 <= x1; x0++)
+ 432   1          {
+ 433   2              if (swapxy == 0)
+ 434   2                  OLED_DrawPixel(x0, y0);
+ 435   2              else
+ 436   2                  OLED_DrawPixel(y0, x0);
+ 437   2      
+ 438   2              err -= dy;
+ 439   2      
+ 440   2              if (err < 0)
+ 441   2              {
+ 442   3                  y0 += ystep;
+ 443   3                  err += dx;
+ 444   3              }
+ 445   2          }
+ 446   1      }
+ 447          
+ 448          /*  绘制垂直线至缓存
+ 449              Draw vertical line to buffer*/
+ 450          void OLED_DrawVLine(uint8 x, uint8 y, uint8 w)
+ 451          {
+ 452   1          uint8 mask;
+ 453   1          uint8 *pBuf;
+ 454   1      
+ 455   1          if (x > WIDTH - 1)
+ 456   1              x = WIDTH - 1;
+ 457   1      
+ 458   1          if (y + w > HEIGHT)
+ 459   1              w = HEIGHT - y;
+ 460   1      
+ 461   1          while (w--)
+ 462   1          {
+ 463   2              pBuf = &_buf[(y >> 3) * WIDTH + x];
+ 464   2              mask = 1 << (y & 7);
+ 465   2              if (_OLED_Reverse)
+ 466   2              {
+ 467   3                  *pBuf++ &= ~mask;
+ 468   3              }
+ 469   2              else
+ 470   2              {
+ 471   3                  *pBuf++ |= mask;
+ 472   3              }
+ 473   2              y++;
+ 474   2          }
+ 475   1      }
+ 476          
+ 477          /*  绘制水平线至缓存
+ 478              Draw horizontal line to buffer  */
+ 479          void OLED_DrawHLine(uint8 x, uint8 y, uint8 w)
+ 480          {
+ 481   1          uint8 *pBuf;
+ 482   1          uint8 mask;
+ 483   1      
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 9   
+
+ 484   1          if (x + w > WIDTH)
+ 485   1              w = WIDTH - x;
+ 486   1      
+ 487   1          if (y > HEIGHT - 1)
+ 488   1              y = HEIGHT - 1;
+ 489   1      
+ 490   1          pBuf = &_buf[(y >> 3) * WIDTH + x];
+ 491   1          mask = 1 << (y & 7);
+ 492   1      
+ 493   1          while (w--)
+ 494   1          {
+ 495   2              if (_OLED_Reverse)
+ 496   2              {
+ 497   3                  *pBuf++ &= ~mask;
+ 498   3              }
+ 499   2              else
+ 500   2              {
+ 501   3                  *pBuf++ |= mask;
+ 502   3              }
+ 503   2          }
+ 504   1      }
+ 505          
+ 506          /*  绘制图片至缓存
+ 507              Draw pic to buffer  */
+ 508          void OLED_DrawBMP(uint8 x0, uint8 y0, uint8 x1, uint8 y1, uint8 *BMP, uint16 len)
+ 509          {
+ 510   1          uint16 j = 0;
+ 511   1          uint8 x, y;
+ 512   1          uint8 mask;
+ 513   1          uint8 *pBuf;
+ 514   1          uint8 offset;
+ 515   1      
+ 516   1          if (x0 > x1)
+ 517   1          {
+ 518   2              _swap_char(x0, x1);
+ 519   2          }
+ 520   1      
+ 521   1          if (y0 > y1)
+ 522   1          {
+ 523   2              _swap_char(y0, y1);
+ 524   2          }
+ 525   1      
+ 526   1          if (x0 > WIDTH - 1)
+ 527   1              x0 = WIDTH - 1;
+ 528   1      
+ 529   1          if (y0 > HEIGHT - 1)
+ 530   1              y0 = HEIGHT - 1;
+ 531   1      
+ 532   1          if (x1 > WIDTH - 1)
+ 533   1              x1 = WIDTH - 1;
+ 534   1      
+ 535   1          if (y1 > HEIGHT - 1)
+ 536   1              y1 = HEIGHT - 1;
+ 537   1      
+ 538   1          for (y = y0; y <= y1; y += 8)
+ 539   1          {
+ 540   2              offset = y & 7;
+ 541   2      
+ 542   2              for (x = x0; x <= x1; x++)
+ 543   2              {
+ 544   3                  if (j > len - 1)
+ 545   3                      break;
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 10  
+
+ 546   3      
+ 547   3                  pBuf = &_buf[(y >> 3) * WIDTH + x];
+ 548   3                  mask = *(BMP + j++) << offset;
+ 549   3                  OLED_Draw_Byte(pBuf++, mask, offset, 0);
+ 550   3      
+ 551   3                  if (offset && y < HEIGHT - 8)
+ 552   3                  {
+ 553   4                      j--;
+ 554   4                      pBuf = &_buf[((y >> 3) + 1) * WIDTH + x];
+ 555   4                      mask = *(BMP + j++) >> (8 - offset);
+ 556   4                      OLED_Draw_Byte(pBuf++, mask, 8 - offset, 1);
+ 557   4                  }
+ 558   3              }
+ 559   2          }
+ 560   1      }
+ 561          
+ 562          /*  将缓存内容显示到屏幕上
+ 563              Send buffer to display  */
+ 564          void OLED_Display(void)
+ 565          {
+ 566   1          uint8 i, j;
+ 567   1          uint8 *pBuf;
+ 568   1          pBuf = _buf;
+ 569   1      
+ 570   1          for (j = 0; j < PAGES; j++)
+ 571   1          {
+ 572   2              for (i = 0; i < WIDTH; i++)
+ 573   2              {
+ 574   3                  OLED_Write_Data(*pBuf++);
+ 575   3              }
+ 576   2          }
+ 577   1      }
+ 578          
+ 579          /*  初始化SSD1306
+ 580              Initialize SSD1306  */
+ 581          void OLED_Init(void)
+ 582          {
+ 583   1          OLED_RST_Set();
+ 584   1          Delay50ms();
+ 585   1          OLED_RST_Clr();
+ 586   1          Delay50ms();
+ 587   1          OLED_RST_Set();
+ 588   1      
+ 589   1          OLED_Write_Command(0xAE); //--Turn off oled panel
+ 590   1      
+ 591   1          /*  
+ 592   1              以下三条命令是给页面模式用的，行模式和列模式不要设置，会引起问题
+ 593   1              行模式或列模式，要用0x21和0x22设置范围
+ 594   1              Following three commands are for Page Addressing Mode. Do not set them in Horizontal addressing mo
+             -de or Vertical addressing mode, will rise problem.
+ 595   1              For Horizontal addressing mode or Vertical addressing mode, should use 0x21 and 0x22 set column an
+             -d page address
+ 596   1          */
+ 597   1          //  OLED_Write_Command(0x00); //-Set Lower Column Start Address for Page Addressing Mode
+ 598   1          //  OLED_Write_Command(0x10); //-Set Higher Column Start Address for Page Addressing Mode
+ 599   1          //  OLED_Write_Command(0xB0); //-Set the page start address of the target display location by command f
+             -or Page Addressing Mode
+ 600   1      
+ 601   1          OLED_Write_Command(0x20); //-Set Page Addressing Mode (0x00/0x01/0x02)
+ 602   1          OLED_Write_Command(0x00); //--0x00: Horizontal addressing mode, 0x01: Vertical addressing mode, 0x02: 
+             -Page addressing mode
+ 603   1          
+C51 COMPILER V9.59.0.0   SSD1306                                                           05/13/2022 14:16:09 PAGE 11  
+
+ 604   1          OLED_Write_Command(0x21); //-Set Column Address
+ 605   1          OLED_Write_Command(0x00); //--Start address
+ 606   1          OLED_Write_Command(0x7f); //--End address
+ 607   1      
+ 608   1          OLED_Write_Command(0x22); //-Set Page Address
+ 609   1          OLED_Write_Command(0x00); //---Start address
+ 610   1          OLED_Write_Command(0x07); //--End address
+ 611   1      
+ 612   1          OLED_Write_Command(0x40); //-Set Display Start Line (0x40h~0x7F)
+ 613   1      
+ 614   1          OLED_Write_Command(0x81);                 //-Set Contrast Control for BANK0
+ 615   1          OLED_Write_Command(OLED_Brightness * 10); //    -0x00 to 0xFF, The segment output current increases as
+             - the contrast step value increases
+ 616   1      
+ 617   1          OLED_Write_Command(0xA1); //-Set Segment Re-map. 0xA1: Normal, 0xA0: Re-map left and right
+ 618   1          OLED_Write_Command(0xC8); //-Set COM Output Scan Direction. 0xC8: Normal, 0xC0: Re-map up and down
+ 619   1          OLED_Write_Command(0xA6); //-Set Normal/Inverse Display, 0xA6:Normal, 0xA7: Inverse
+ 620   1      
+ 621   1          OLED_Write_Command(0xA8); //-Set Multiplex Ratio (16~63)
+ 622   1          OLED_Write_Command(0x3F); //--63 multiplex mode
+ 623   1      
+ 624   1          OLED_Write_Command(0xD3); //-Set Display Offset (0x00~0x3F)
+ 625   1          OLED_Write_Command(0x00); //--No offset
+ 626   1      
+ 627   1          OLED_Write_Command(0xD5); //-Set display clock divide ratio/oscillator frequency
+ 628   1          OLED_Write_Command(0x20); //--Set Clock as 60 Frames/Sec
+ 629   1      
+ 630   1          OLED_Write_Command(0xD9); //-Set pre-charge period
+ 631   1          OLED_Write_Command(0xF2); //--Set Pre-Charge as 15 Clocks & Discharge as 2 Clock
+ 632   1      
+ 633   1          OLED_Write_Command(0xDA); //-Set com pins hardware configuration
+ 634   1          OLED_Write_Command(0x12); //
+ 635   1      
+ 636   1          OLED_Write_Command(0xDB); //-Set VCOM Deselect Level
+ 637   1          OLED_Write_Command(0x30); //--0.83xVcc
+ 638   1      
+ 639   1          OLED_Write_Command(0x8D); //-Set Charge Pump enable/disable
+ 640   1          OLED_Write_Command(0x14); //--0x14: Enable, 0x10: Disable
+ 641   1      
+ 642   1          OLED_Write_Command(0xA4); //-Entire Display ON, 0xA4: Disable, 0xA5: Enable
+ 643   1          OLED_Write_Command(0xAF); //-Turn on oled panel
+ 644   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2991    ----
+   CONSTANT SIZE    =    724    ----
+   XDATA SIZE       =   1027      76
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2       4
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

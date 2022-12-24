@@ -1,0 +1,176 @@
+C251 COMPILER V5.60.0,  usb_desc                                                           11/08/22  14:36:08  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE usb_desc
+OBJECT MODULE PLACED IN .\obj\usb_desc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE src\usb\usb_desc.c XSMALL INTR2 INCDIR(.\src;.\src\inc;.\src\usb) DEBU
+                    -G PRINT(.\obj\usb_desc.lst) TABS(2) OBJECT(.\obj\usb_desc.obj) 
+
+stmt  level    source
+
+    1          #include "stc.h"
+    2          #include "usb_desc.h"
+    3          
+    4          char code DEVICEDESC[18] =
+    5          {
+    6              0x12,                   //bLength(18);
+    7              0x01,                   //bDescriptorType(Device);
+    8              0x00,0x02,              //bcdUSB(2.00);
+    9              0x02,                   //bDeviceClass(2:Communication Device Class);
+   10              0x00,                   //bDeviceSubClass(0);
+   11              0x00,                   //bDeviceProtocol(0);
+   12              0x40,                   //bMaxPacketSize0(64);
+   13              0xbf,0x34,              //idVendor(34bf);
+   14              0x02,0xff,              //idProduct(ff02);
+   15              0x00,0x01,              //bcdDevice(1.00);
+   16              0x01,                   //iManufacturer(1);
+   17              0x02,                   //iProduct(2);
+   18              0x00,                   //iSerialNumber(0);
+   19              0x01,                   //bNumConfigurations(1);
+   20          };
+   21          
+   22          char code CONFIGDESC[67] =
+   23          {
+   24              0x09,                   //bLength(9);
+   25              0x02,                   //bDescriptorType(Configuration);
+   26              0x43,0x00,              //wTotalLength(67);
+   27              0x02,                   //bNumInterfaces(2);
+   28              0x01,                   //bConfigurationValue(1);
+   29              0x00,                   //iConfiguration(0);
+   30              0x80,                   //bmAttributes(BUSPower);
+   31              0x32,                   //MaxPower(100mA);
+   32          
+   33              0x09,                   //bLength(9);
+   34              0x04,                   //bDescriptorType(Interface);
+   35              0x00,                   //bInterfaceNumber(0);
+   36              0x00,                   //bAlternateSetting(0);
+   37              0x01,                   //bNumEndpoints(1);
+   38              0x02,                   //bInterfaceClass(Communication Interface Class);
+   39              0x02,                   //bInterfaceSubClass(Abstract Control Model);
+   40              0x01,                   //bInterfaceProtocol(Common AT commands);
+   41              0x00,                   //iInterface(0);
+   42          
+   43              0x05,                   //bLength(5);
+   44              0x24,                   //bDescriptorType(CS_INTERFACE);
+   45              0x00,                   //bDescriptorSubtype(Header Functional Descriptor);
+   46              0x10,0x01,              //bcdCDC(1.10);
+   47          
+   48              0x05,                   //bLength(5);
+   49              0x24,                   //bDescriptorType(CS_INTERFACE);
+   50              0x01,                   //bDescriptorSubtype(Call Management Functional Descriptor);
+   51              0x00,                   //bmCapabilities(Device does not handles call management itself);
+   52              0x01,                   //bDataInterface(1);
+   53          
+   54              0x04,                   //bLength(4);
+   55              0x24,                   //bDescriptorType(CS_INTERFACE);
+   56              0x02,                   //bDescriptorSubtype(Abstract Control Management Functional Descriptor);
+   57              0x02,                   //bmCapabilities(Set/Get_Line_Coding,Serial_State,Set_Control_Line_State);
+   58          
+C251 COMPILER V5.60.0,  usb_desc                                                           11/08/22  14:36:08  PAGE 2   
+
+   59              0x05,                   //bLength(5);
+   60              0x24,                   //bDescriptorType(CS_INTERFACE);
+   61              0x06,                   //bDescriptorSubtype(Union Functional descriptor);
+   62              0x00,                   //bMasterInterface(0);
+   63              0x01,                   //bSlaveInterface0(1);
+   64          
+   65              0x07,                   //bLength(7);
+   66              0x05,                   //bDescriptorType(Endpoint);
+   67              0x82,                   //bEndpointAddress(EndPoint2 as IN);
+   68              0x03,                   //bmAttributes(Interrupt);
+   69              0x40,0x00,              //wMaxPacketSize(64);
+   70              0xff,                   //bInterval(255ms);
+   71          
+   72              0x09,                   //bLength(9);
+   73              0x04,                   //bDescriptorType(Interface);
+   74              0x01,                   //bInterfaceNumber(1);
+   75              0x00,                   //bAlternateSetting(0);
+   76              0x02,                   //bNumEndpoints(2);
+   77              0x0a,                   //bInterfaceClass(Data Interface Class);
+   78              0x00,                   //bInterfaceSubClass(AData Interface Class SubClass Codes);
+   79              0x00,                   //bInterfaceProtocol(USB SPEC);
+   80              0x00,                   //iInterface(0);
+   81          
+   82              0x07,                   //bLength(7);
+   83              0x05,                   //bDescriptorType(Endpoint);
+   84              0x81,                   //bEndpointAddress(EndPoint1 as IN);
+   85              0x02,                   //bmAttributes(Bulk);
+   86              0x40,0x00,              //wMaxPacketSize(64);
+   87              0x00,                   //bInterval(Ignored);
+   88          
+   89              0x07,                   //bLength(7);
+   90              0x05,                   //bDescriptorType(Endpoint);
+   91              0x01,                   //bEndpointAddress(EndPoint1 as OUT);
+   92              0x02,                   //bmAttributes(Bulk);
+   93              0x40,0x00,              //wMaxPacketSize(64);
+   94              0x00,                   //bInterval(Ignored);
+   95          };
+   96          
+   97          char code LANGIDDESC[4] =
+   98          {
+   99              0x04,0x03,
+  100              0x09,0x04,
+  101          };
+  102          
+  103          char code MANUFACTDESC[8] =
+  104          {
+  105              0x08,0x03,
+  106              'S',0,
+  107              'T',0,
+  108              'C',0,
+  109          };
+  110          
+  111          char code PRODUCTDESC[30] =
+  112          {
+  113              0x1e,0x03,
+  114              'S',0,
+  115              'T',0,
+  116              'C',0,
+  117              ' ',0,
+  118              'U',0,
+  119              'S',0,
+  120              'B',0,
+  121              ' ',0,
+  122              'S',0,
+  123              'e',0,
+  124              'r',0,
+C251 COMPILER V5.60.0,  usb_desc                                                           11/08/22  14:36:08  PAGE 3   
+
+  125              'i',0,
+  126              'a',0,
+  127              'l',0,
+  128          };
+  129          
+  130          char code PACKET0[2] =
+  131          {
+  132              0, 0,
+  133          };
+  134          
+  135          char code PACKET1[2] =
+  136          {
+  137              1, 0,
+  138          };
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       131     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =    ------     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =    ------     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

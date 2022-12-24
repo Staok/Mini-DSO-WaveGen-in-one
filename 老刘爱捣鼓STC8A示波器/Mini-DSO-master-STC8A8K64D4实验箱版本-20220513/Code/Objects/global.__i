@@ -1,0 +1,1 @@
+"global.c" LARGE OPTIMIZE (8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\global.lst) OBJECT(.\Objects\global.obj)

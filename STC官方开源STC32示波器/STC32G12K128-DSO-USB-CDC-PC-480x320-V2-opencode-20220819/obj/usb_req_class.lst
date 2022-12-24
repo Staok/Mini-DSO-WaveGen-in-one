@@ -1,0 +1,107 @@
+C251 COMPILER V5.60.0,  usb_req_class                                                      11/08/22  14:36:08  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE usb_req_class
+OBJECT MODULE PLACED IN .\obj\usb_req_class.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE src\usb\usb_req_class.c XSMALL INTR2 INCDIR(.\src;.\src\inc;.\src\usb)
+                    - DEBUG PRINT(.\obj\usb_req_class.lst) TABS(2) OBJECT(.\obj\usb_req_class.obj) 
+
+stmt  level    source
+
+    1          #include "stc.h"
+    2          #include "usb.h"
+    3          #include "usb_req_class.h"
+    4          #include "util.h"
+    5          
+    6          LINECODING LineCoding;
+    7          
+    8          void usb_req_class()
+    9          {
+   10   1          switch (Setup.bRequest)
+   11   1          {
+   12   2          case SET_LINE_CODING:
+   13   2              usb_set_line_coding();
+   14   2              break;
+   15   2          case GET_LINE_CODING:
+   16   2              usb_get_line_coding();
+   17   2              break;
+   18   2          case SET_CONTROL_LINE_STATE:
+   19   2              usb_set_ctrl_line_state();
+   20   2              break;
+   21   2          default:
+   22   2              usb_setup_stall();
+   23   2              return;
+   24   2          }
+   25   1      }
+   26          
+   27          void usb_set_line_coding()
+   28          {
+   29   1          if ((DeviceState != DEVSTATE_CONFIGURED) ||
+   30   1              (Setup.bmRequestType != (OUT_DIRECT | CLASS_REQUEST | INTERFACE_RECIPIENT)))
+   31   1          {
+   32   2              usb_setup_stall();
+   33   2              return;
+   34   2          }
+   35   1      
+   36   1          Ep0State.pData = (BYTE *)&LineCoding;
+   37   1          Ep0State.wSize = Setup.wLength;
+   38   1      
+   39   1          usb_setup_out();
+   40   1      }
+   41          
+   42          void usb_get_line_coding()
+   43          {
+   44   1          if ((DeviceState != DEVSTATE_CONFIGURED) ||
+   45   1              (Setup.bmRequestType != (IN_DIRECT | CLASS_REQUEST | INTERFACE_RECIPIENT)))
+   46   1          {
+   47   2              usb_setup_stall();
+   48   2              return;
+   49   2          }
+   50   1      
+   51   1          Ep0State.pData = (BYTE *)&LineCoding;
+   52   1          Ep0State.wSize = Setup.wLength;
+   53   1      
+   54   1          usb_setup_in();
+   55   1      }
+   56          
+   57          void usb_set_ctrl_line_state()
+   58          {
+C251 COMPILER V5.60.0,  usb_req_class                                                      11/08/22  14:36:08  PAGE 2   
+
+   59   1          if ((DeviceState != DEVSTATE_CONFIGURED) ||
+   60   1              (Setup.bmRequestType != (OUT_DIRECT | CLASS_REQUEST | INTERFACE_RECIPIENT)))
+   61   1          {
+   62   2              usb_setup_stall();
+   63   2              return;
+   64   2          }
+   65   1      
+   66   1          usb_setup_status();
+   67   1      }
+   68          
+   69          void usb_uart_settings()
+   70          {
+   71   1      }
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       126     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =         7     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =    ------     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

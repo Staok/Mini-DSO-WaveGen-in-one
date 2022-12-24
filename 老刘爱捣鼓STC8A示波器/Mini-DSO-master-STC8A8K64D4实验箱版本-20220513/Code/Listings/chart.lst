@@ -1,0 +1,922 @@
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE CHART
+OBJECT MODULE PLACED IN .\Objects\chart.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE chart.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listin
+                    -gs\chart.lst) OBJECT(.\Objects\chart.obj)
+
+line level    source
+
+   1          /*
+   2              chart.c
+   3          
+   4              Sampling Data Analyse and Plot Interface
+   5          
+   6              Copyright (c) 2020 Creative Lau (creativelaulab@gmail.com)
+   7          
+   8              Permission is hereby granted, free of charge, to any person obtaining a copy
+   9              of this software and associated documentation files (the "Software"), to deal
+  10              in the Software without restriction, including without limitation the rights
+  11              to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  12              copies of the Software, and to permit persons to whom the Software is
+  13              furnished to do so, subject to the following conditions:
+  14          
+  15              The above copyright notice and this permission notice shall be included in all
+  16              copies or substantial portions of the Software.
+  17          
+  18              THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  19              IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  20              FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  21              AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  22              LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  23              OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  24              SOFTWARE.
+  25          
+  26              Note:
+  27              2020-04-30¸üÐÂ
+  28              1. ÐÞÕý²¨ÐÎ×î´óµçÑ¹ºÍ×îÐ¡µçÑ¹Öµ£¬Ö®Ç°ÏÔÊ¾µÄÊÇËùÓÐ²ÉÑùµãÖÐµÄ×î´óºÍ×îÐ¡Öµ£¬ÐÞÕýºóÏÔÊ¾ÎªÆÁÄ»·¶Î§ÄÚµÄ×î´óÖ
+             -µºÍ×îÐ¡Öµ
+  29              2. ´¥·¢Î»ÖÃ´ÓÖ®Ç°µÄ¹Ì¶¨²¨ÐÎÖÐµã¸ÄÎªÓÃ»§×Ô¶¨Òå
+  30              3. Ôö¼Ó¼ÆËã²¨ÐÎÆµÂÊº¯Êý
+  31          */
+  32          #include "chart.h"
+  33          #include "bmp.h"
+  34          //#include "stdio.h"
+  35          
+  36          uint16 *pADCSampling;       //Ö¸ÏòADCÊµÊ±²ÉÑùµÄÖ¸Õë
+  37          uint16 waveBuf[SAMPLE_NUM]; //¾­¹ý¼ÆËãÕûÀíºóµÄ²¨ÐÎÊý¾Ý
+  38          uint8 triPre;               //´¥·¢Î»ÖÃÇ°·½µÈÖµµã
+  39          uint8 triAft;               //´¥·¢Î»ÖÃºó·½µÈÖµµã
+  40          uint16 plotADCMax, plotADCMin;
+  41          
+  42          void GetWaveData()
+  43          {
+  44   1          pADCSampling = GetWaveADC(ADC_DSO, ScaleH);
+  45   1      }
+  46          
+  47          /* »ñµÃ×Ô¶¯Á¿³Ì×ÝÖáÉÏÏÂÏÞ
+  48             Calculate voltage range for Auto Range*/
+  49          void getRulerV()
+  50          {
+  51   1          //×Ô¶¯Á¿³Ì£¬¸ù¾Ý²ÉÑùµãµÄ×î´ó×îÐ¡Öµ£¬°´500mVÀ©´ó·¶Î§È¡Õû£¬×÷Îª´¹Ö±±ê³ß·¶Î§mV
+  52   1          if (ScaleV_Auto == 1)
+  53   1          {
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 2   
+
+  54   2              if (VMax / 100 % 10 >= 5)
+  55   2                  RulerVMax = (VMax + 500) / 1000 * 1000;
+  56   2              else
+  57   2                  RulerVMax = VMax / 1000 * 1000 + 500;
+  58   2      
+  59   2              if (VMin / 100 % 10 >= 5)
+  60   2                  RulerVMin = VMin / 1000 * 1000 + 500;
+  61   2              else
+  62   2                  RulerVMin = VMin / 1000 * 1000;
+  63   2      
+  64   2              if (RulerVMax > MAX_V)
+  65   2                  RulerVMax = MAX_V;
+  66   2      
+  67   2              if (RulerVMin < MIN_V)
+  68   2                  RulerVMin = MIN_V;
+  69   2          }
+  70   1      }
+  71          
+  72          /* ¼ÆËã²¨³¤
+  73             Calculate wave length*/
+  74          bit getWaveLength(uint16 triLevel, bit right_or_left)
+  75          {
+  76   1          int16 i;
+  77   1          uint8 tri_pre = 255;
+  78   1          uint8 tri_aft = 255;
+  79   1          uint8 triPos_tmp;
+  80   1          bit triSlope_tmp;
+  81   1          bit triFail = 1;
+  82   1          /* ²éÕÒ¾àÀëÆÁÄ»ÖÐÐÄ×î½üµÄ´¥·¢µã
+  83   1             Search the trigger poiont closest to the center of chart */
+  84   1          if (right_or_left) //ÏòÓÒ²éÕÒÁÙÊ±´¥·¢µã / Search right side
+  85   1          {
+  86   2              for (i = TriPos + TriPosOffset; i < SAMPLE_NUM - 2; i++)
+  87   2              {
+  88   3                  if (GetTriggerPos(*(ADCbuf + i), *(ADCbuf + i + 1), triLevel, 1)) //°´ÉÏÉýÑØ²éÕÒ / Search on r
+             -ising edge
+  89   3                  {
+  90   4                      triPos_tmp = i;
+  91   4                      triSlope_tmp = 1;
+  92   4                      triFail = 0;
+  93   4                      break;
+  94   4                  }
+  95   3                  else if (GetTriggerPos(*(ADCbuf + i), *(ADCbuf + i + 1), triLevel, 0)) //°´ÏÂ½µÑØ²éÕÒ / Search
+             - on falling edge
+  96   3                  {
+  97   4                      triPos_tmp = i;
+  98   4                      triSlope_tmp = 0;
+  99   4                      triFail = 0;
+ 100   4                      break;
+ 101   4                  }
+ 102   3              }
+ 103   2          }
+ 104   1          else //Ïò×ó²éÕÒÁÙÊ±´¥·¢µã / Search left side
+ 105   1          {
+ 106   2              for (i = TriPos + TriPosOffset; i > 0; i--)
+ 107   2              {
+ 108   3                  if (GetTriggerPos(*(ADCbuf + i), *(ADCbuf + i + 1), triLevel, 1)) //°´ÉÏÉýÑØ²éÕÒ / Search on r
+             -ising edge
+ 109   3                  {
+ 110   4                      triPos_tmp = i;
+ 111   4                      triSlope_tmp = 1;
+ 112   4                      triFail = 0;
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 3   
+
+ 113   4                      break;
+ 114   4                  }
+ 115   3                  else if (GetTriggerPos(*(ADCbuf + i), *(ADCbuf + i + 1), triLevel, 0)) //°´ÏÂ½µÑØ²éÕÒ / Search
+             - on falling edge
+ 116   3                  {
+ 117   4                      triPos_tmp = i;
+ 118   4                      triSlope_tmp = 0;
+ 119   4                      triFail = 0;
+ 120   4                      break;
+ 121   4                  }
+ 122   3              }
+ 123   2          }
+ 124   1      
+ 125   1          if (!triFail)
+ 126   1          {
+ 127   2              for (i = triPos_tmp; i >= 0; i--) //²éÑ¯´¥·¢Î»ÖÃ×ó²àµÄµÈÖµµã / Search equal point left side
+ 128   2              {
+ 129   3                  if (triSlope_tmp) //ÉÏÉý´¥·¢,²éÕÒÏÂ½µµã / Trigger on rising edge, search on falling edge
+ 130   3                  {
+ 131   4                      if (*(ADCbuf + i) >= triLevel && *(ADCbuf + i + 1) <= triLevel)
+ 132   4                      {
+ 133   5                          tri_pre = i;
+ 134   5                          break;
+ 135   5                      }
+ 136   4                  }
+ 137   3                  else //ÏÂ½µ´¥·¢£¬²éÕÒÉÏÉýµã / Trigger on falling edge, search on rising edge
+ 138   3                  {
+ 139   4                      if (*(ADCbuf + i) <= triLevel && *(ADCbuf + i + 1) >= triLevel)
+ 140   4                      {
+ 141   5                          tri_pre = i;
+ 142   5                          break;
+ 143   5                      }
+ 144   4                  }
+ 145   3              }
+ 146   2      
+ 147   2              for (i = triPos_tmp; i < SAMPLE_NUM - 1; i++) //²éÑ¯´¥·¢Î»ÖÃÓÒ²àµÄµÈÖµµã / Search equal point righ
+             -t side
+ 148   2              {
+ 149   3                  if (triSlope_tmp) //ÉÏÉý´¥·¢,²éÕÒÏÂ½µµã / Trigger on rising edge, search on falling edge
+ 150   3                  {
+ 151   4                      if (*(ADCbuf + i) >= triLevel && *(ADCbuf + i + 1) <= triLevel)
+ 152   4                      {
+ 153   5                          tri_aft = i;
+ 154   5                          break;
+ 155   5                      }
+ 156   4                  }
+ 157   3                  else //ÏÂ½µ´¥·¢£¬²éÕÒÉÏÉýµã / Trigger on falling edge, search on rising edge
+ 158   3                  {
+ 159   4                      if (*(ADCbuf + i) <= triLevel && *(ADCbuf + i + 1) >= triLevel)
+ 160   4                      {
+ 161   5                          tri_aft = i;
+ 162   5                          break;
+ 163   5                      }
+ 164   4                  }
+ 165   3              }
+ 166   2          }
+ 167   1          if (tri_pre == 255 || tri_aft == 255 || (tri_pre == tri_aft))
+ 168   1          {
+ 169   2              WaveLength = 0;
+ 170   2              return 0;
+ 171   2          }
+ 172   1          else
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 4   
+
+ 173   1          {
+ 174   2              WaveLength = tri_aft - tri_pre;
+ 175   2              return 1;
+ 176   2          }
+ 177   1      }
+ 178          
+ 179          /* ¼ÆËã²¨ÐÎÆµÂÊ
+ 180             Calculate the wave frequency*/
+ 181          void getWaveFreq()
+ 182          {
+ 183   1          uint16 m_num; //ÇóºÍ´ÎÊý
+ 184   1          uint8 n_num;  //ÇóÆ½¾ùÖµÓÒÒÆÎ»Êý
+ 185   1      
+ 186   1          //ADCÍ£Ö¹²ÉÑùÊ±£¬Ã¿´Î¶¯×÷¶¼»áÏÔÊ¾²¨ÐÎÆµÂÊ£¬Òò´Ë²»ÇóÆ½¾ùÖµ
+ 187   1          if (!ADCRunning)
+ 188   1          {
+ 189   2              WaveLengthSumNum = 0;
+ 190   2              WaveLengthSum = 0;
+ 191   2          }
+ 192   1      
+ 193   1          //×Ô¶¯Ä£Ê½ÏÂÎªÁËÈÃÆµÂÊ²»Æµ·±±ä¶¯£¬È¡Æ½¾ùÖµ£¬´óÓÚµÈÓÚ100msÇø¼ä²»È¡Æ½¾ùÖµ£¬Ò»¸öÔ­ÒòÊÇ100ms²¨ÐÎ±ä»¯Âý£¬Ëù
+             -ÒÔÆµÂÊÌø¶¯²»Æµ·±£¬
+ 194   1          //ÁíÒ»·½ÃæÔ½³¤µÄÊ±¼äÇø¼äÈ¡Æ½¾ùÖµµÄÑÓ³ÙÔ½¸ß£¬Ó°ÏìÊ¹ÓÃÌåÑé
+ 195   1          else if (TriMode == 0 && ScaleH > 2)
+ 196   1          {
+ 197   2              switch (ScaleH)
+ 198   2              {
+ 199   3              case 3: //50ms
+ 200   3                  m_num = 2;
+ 201   3                  n_num = 1;
+ 202   3                  break;
+ 203   3      
+ 204   3              case 4: //20ms
+ 205   3                  m_num = 4;
+ 206   3                  n_num = 2;
+ 207   3                  break;
+ 208   3      
+ 209   3              default: //<10ms
+ 210   3                  m_num = 8;
+ 211   3                  n_num = 3;
+ 212   3                  break;
+ 213   3              }
+ 214   2      
+ 215   2              WaveLengthSum += WaveLength;
+ 216   2      
+ 217   2              //´ïµ½ÇóºÍ´ÎÊýºó
+ 218   2              if (++WaveLengthSumNum >= m_num)
+ 219   2              {
+ 220   3                  WaveLength = WaveLengthSum >> n_num; //Çó²¨³¤Æ½¾ùÖµ
+ 221   3                  WaveLengthSumNum = 0;                //ÇåÁã²¨³¤ÇóºÍ´ÎÊý
+ 222   3                  WaveLengthSum = 0;                   //ÇåÁã²¨³¤×ÜºÍ
+ 223   3              }
+ 224   2      
+ 225   2              //Ã»´ïµ½ÇóºÍ´ÎÊý£¬Ôò·µ»Ø£¬WaveFreq±£³Ö²»±ä
+ 226   2              else
+ 227   2                  return;
+ 228   2          }
+ 229   1      
+ 230   1          switch (ScaleH)
+ 231   1          {
+ 232   2          case 0:                                      //500ms
+ 233   2              WaveFreq = (float)50 / WaveLength + 0.5; //WaveFreq=25000/(500*WaveLength);
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 5   
+
+ 234   2              break;
+ 235   2      
+ 236   2          case 1:                          //200ms
+ 237   2              WaveFreq = 125 / WaveLength; //WaveFreq=25000/(200*WaveLength);
+ 238   2              break;
+ 239   2      
+ 240   2          case 2:                          //100ms
+ 241   2              WaveFreq = 250 / WaveLength; //WaveFreq=25000/(100*WaveLength);
+ 242   2              break;
+ 243   2      
+ 244   2          case 3:                          //50ms
+ 245   2              WaveFreq = 500 / WaveLength; //WaveFreq=25000/(50*WaveLength);
+ 246   2              break;
+ 247   2      
+ 248   2          case 4:                           //20ms
+ 249   2              WaveFreq = 1250 / WaveLength; //WaveFreq=25000/(20*WaveLength);
+ 250   2              break;
+ 251   2      
+ 252   2          case 5:                           //10ms
+ 253   2              WaveFreq = 2500 / WaveLength; //WaveFreq=25000/(10*WaveLength);
+ 254   2              break;
+ 255   2      
+ 256   2          case 6:                           //5ms
+ 257   2              WaveFreq = 5000 / WaveLength; //WaveFreq=25000/(5*WaveLength);
+ 258   2              break;
+ 259   2      
+ 260   2          case 7:                            //2ms
+ 261   2              WaveFreq = 12500 / WaveLength; //WaveFreq=25000/(2*WaveLength);
+ 262   2              break;
+ 263   2      
+ 264   2          case 8:                            //1ms
+ 265   2              WaveFreq = 25000 / WaveLength; //WaveFreq=25000/(1*WaveLength);
+ 266   2              break;
+ 267   2      
+ 268   2          case 9:                            //500us
+ 269   2              WaveFreq = 50000 / WaveLength; //WaveFreq=25000000/(500*WaveLength);
+ 270   2              break;
+ 271   2      
+ 272   2          case 10:                            //200us
+ 273   2              WaveFreq = 125000 / WaveLength; //WaveFreq=25000000/(200*WaveLength);
+ 274   2              break;
+ 275   2      
+ 276   2          case 11:                            //100us
+ 277   2              WaveFreq = 250000 / WaveLength; //WaveFreq=25000000/(100*WaveLength);
+ 278   2              break;
+ 279   2          }
+ 280   1      }
+ 281          
+ 282          /* ½«mv×ª»»ÎªADC
+ 283             Convert voltage in mV to ADC*/
+ 284          uint16 Convert_mv_ADC(uint16 mv, uint16 BGV, uint16 ADCbg, uint16 lsb)
+ 285          {
+ 286   1          uint16 ADC;
+ 287   1          ADC = (uint32)mv * ADCbg * 100 / BGV / lsb;
+ 288   1          return ADC;
+ 289   1      }
+ 290          
+ 291          /* ½«mv×ª»»ÎªADC
+ 292             Convert ADC to voltage in mV */
+ 293          uint16 c_ADC_mv(uint16 ADC, uint16 BGV, uint16 BGADC, uint16 lsb)
+ 294          {
+ 295   1          uint16 mv;
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 6   
+
+ 296   1          mv = (uint32)ADC * BGV * lsb / BGADC / 100;
+ 297   1          return mv;
+ 298   1      }
+ 299          
+ 300          /* ½«uint16¸ñÊ½µÄmV×ª»¯Îª×Ö·ûÐÍV
+ 301             Convert voltage in mV to string*/
+ 302          uint8 *c_mv_V(uint16 v)
+ 303          {
+ 304   1          static uint8 s[5];
+ 305   1      
+ 306   1          if (v < 10000)
+ 307   1          {
+ 308   2              s[0] = v / 1000 + '0';
+ 309   2              s[1] = '.';
+ 310   2              s[2] = v / 100 % 10 + '0';
+ 311   2              s[3] = v / 10 % 10 + '0';
+ 312   2              s[4] = '\0';
+ 313   2          }
+ 314   1          else
+ 315   1          {
+ 316   2              s[0] = v / 10000 + '0';
+ 317   2              s[1] = v / 1000 % 10 + '0';
+ 318   2              s[2] = '.';
+ 319   2              s[3] = v / 100 % 10 + '0';
+ 320   2              s[4] = '\0';
+ 321   2          }
+ 322   1      
+ 323   1          return s;
+ 324   1      }
+ 325          
+ 326          /* ×ª»»²¨ÐÎÆµÂÊÎª×Ö·û
+ 327             Convert frequency to string */
+ 328          uint8 *c_WaveFreq_Str()
+ 329          {
+ 330   1          static uint8 s[5];
+ 331   1          if (WaveFreq == 0)
+ 332   1          {
+ 333   2              s[0] = '*';
+ 334   2              s[1] = '*';
+ 335   2              s[2] = '*';
+ 336   2              s[3] = '*';
+ 337   2              s[4] = '\0';
+ 338   2          }
+ 339   1          else if (WaveFreq >= 10000000)
+ 340   1          {
+ 341   2              s[0] = WaveFreq / 10000000 + '0';
+ 342   2              s[2] = ((WaveFreq) / 1000000) % 10 + '0';
+ 343   2              s[3] = 'M';
+ 344   2              s[4] = '\0';
+ 345   2          }
+ 346   1          else if (WaveFreq >= 1000000)
+ 347   1          {
+ 348   2              s[0] = WaveFreq / 1000000 + '0';
+ 349   2              s[1] = '.';
+ 350   2              s[2] = ((WaveFreq) / 100000) % 10 + '0';
+ 351   2              s[3] = 'M';
+ 352   2              s[4] = '\0';
+ 353   2          }
+ 354   1          else if (WaveFreq >= 100000)
+ 355   1          {
+ 356   2              s[0] = WaveFreq / 100000 + '0';
+ 357   2              s[1] = (WaveFreq / 10000) % 10 + '0';
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 7   
+
+ 358   2              s[2] = ((WaveFreq) / 1000) % 10 + '0';
+ 359   2              s[3] = 'k';
+ 360   2              s[4] = '\0';
+ 361   2          }
+ 362   1          else if (WaveFreq >= 10000)
+ 363   1          {
+ 364   2              s[0] = WaveFreq / 10000 + '0';
+ 365   2              s[1] = ((WaveFreq) / 1000) % 10 + '0';
+ 366   2              s[2] = 'k';
+ 367   2              s[3] = '\0';
+ 368   2          }
+ 369   1          else if (WaveFreq >= 1000)
+ 370   1          {
+ 371   2              s[0] = WaveFreq / 1000 + '0';
+ 372   2              s[1] = '.';
+ 373   2              if ((WaveFreq / 10) % 10 > 5)
+ 374   2                  s[2] = ((WaveFreq) / 100) % 10 + '0';
+ 375   2              else
+ 376   2                  s[2] = ((WaveFreq) / 100) % 10 + '0';
+ 377   2              s[3] = 'k';
+ 378   2              s[4] = '\0';
+ 379   2          }
+ 380   1          else if (WaveFreq >= 100)
+ 381   1          {
+ 382   2              s[0] = WaveFreq / 100 + '0';
+ 383   2              s[1] = (WaveFreq / 10) % 10 + '0';
+ 384   2              s[2] = (WaveFreq) % 10 + '0';
+ 385   2              s[3] = '\0';
+ 386   2          }
+ 387   1          else if (WaveFreq >= 10)
+ 388   1          {
+ 389   2              s[0] = WaveFreq / 10 + '0';
+ 390   2              s[1] = (WaveFreq) % 10 + '0';
+ 391   2              s[2] = '\0';
+ 392   2          }
+ 393   1          else if (WaveFreq >= 1)
+ 394   1          {
+ 395   2              s[0] = (WaveFreq) % 10 + '0';
+ 396   2              s[1] = '\0';
+ 397   2          }
+ 398   1          return s;
+ 399   1      }
+ 400          
+ 401          /* ½«²ÉÑùÖµµÄÓ³Éäµ½ÆÁÄ»µÄÏÔÊ¾·¶Î§£¬²¢·´×ª
+ 402             Remap sampling data to display range and inverse */
+ 403          uint16 remap(uint16 val, uint16 rangeMax, uint16 rangeMin, uint16 rangeMaxNew, uint16 rangeMinNew)
+ 404          {
+ 405   1          if (val > rangeMax)
+ 406   1              val = rangeMax;
+ 407   1          else if (val < rangeMin)
+ 408   1              val = rangeMin;
+ 409   1      
+ 410   1          val = rangeMinNew + (uint32)(rangeMax - val) * (rangeMaxNew - rangeMinNew) / (rangeMax - rangeMin);
+ 411   1          return val;
+ 412   1      }
+ 413          
+ 414          /* »ñÈ¡´¥·¢µãÎ»ÖÃ
+ 415             Get Trigger Position */
+ 416          bit GetTriggerPos(uint16 d1, uint16 d2, uint16 dTrigger, bit triSlope)
+ 417          {
+ 418   1          /*  ÉÏÉýÑØ´¥·¢
+ 419   1              Trigger on Rising Edge  */
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 8   
+
+ 420   1          if (triSlope)
+ 421   1          {
+ 422   2              if (d1 <= dTrigger && d2 >= dTrigger)
+ 423   2              {
+ 424   3                  return 1;
+ 425   3              }
+ 426   2          }
+ 427   1      
+ 428   1          /*  ÏÂ½µÑØ´¥·¢
+ 429   1              Trigger on Falling Edge */
+ 430   1          else
+ 431   1          {
+ 432   2              if (d1 >= dTrigger && d2 <= dTrigger)
+ 433   2              {
+ 434   3                  return 1;
+ 435   3              }
+ 436   2          }
+ 437   1      
+ 438   1          return 0;
+ 439   1      }
+ 440          
+ 441          /* ·ÖÎö²ÉÑùÊý¾Ý
+ 442             Analyse sampling date */
+ 443          void AnalyseData()
+ 444          {
+ 445   1          int16 i;
+ 446   1          uint16 tmp;
+ 447   1          uint16 adcMax = 0;
+ 448   1          uint16 adcMin = 4095;
+ 449   1          uint16 adcMid = 0;
+ 450   1          uint16 plotADCMid = 0;
+ 451   1          if (ADCComplete)
+ 452   1          {
+ 453   2              ScaleH_tmp = ScaleH; //¼ÇÂ¼Íê³É²ÉÑùµÄÊ±¼äÇø¼ä£¬ÓÉÓÚ²ÉÑùµãµÄÊýÁ¿½ÏÉÙ£¬Òò´Ë²»Ö§³ÖÊµÊ±¸ù¾ÝÊ±¼äÇø¼äËõ·
+             -Å²¨ÐÎ£¬Ê±¼äÇø¼ä¸Ä±äÔòÇå¿Õ²¨ÐÎ
+ 454   2              //½«²ÉÑùµã¸´ÖÆµ½ÁíÒ»¸öÊý×é£¬±ÜÃâ²ÉÑùÖÐ¶ÏÔì³ÉÊý¾Ý»ìÂÒ
+ 455   2              //Èô²ÉÑù±»ÖÐ¶Ï£¬ÔòÊ¹ÓÃ»º´æÖÐ¾É²ÉÑùµãÏÔÊ¾²¨ÐÎ
+ 456   2              for (i = 0; i < SAMPLE_NUM; i++)
+ 457   2              {
+ 458   3                  *(ADCbuf + i) = *(pADCSampling + i);
+ 459   3              }
+ 460   2      
+ 461   2              //¼ÆËã´¥·¢µãÎ»ÖÃ
+ 462   2              //ADC²ÉÑùÍ£Ö¹Ê±£¬TriPos²»±ä£¬ËùÒÔ²»½øÐÐÏÂÁÐ¼ÆËã
+ 463   2              TriPos = SAMPLE_NUM / 2;
+ 464   2              TriFail = 1; //ÖÃÎ»´¥·¢Ê§°Ü±êÖ¾
+ 465   2              for (i = ((CHART_H_MAX - CHART_H_MIN) >> 1); i < SAMPLE_NUM - ((CHART_H_MAX - CHART_H_MIN) >> 1); 
+             -i++)
+ 466   2              {
+ 467   3                  if (GetTriggerPos(*(ADCbuf + i), *(ADCbuf + i + 1), TriggerADC, TriSlope))
+ 468   3                  {
+ 469   4                      TriPos = i;
+ 470   4                      TriFail = 0; //ÇåÁã´¥·¢Ê§°Ü±êÖ¾
+ 471   4                      break;
+ 472   4                  }
+ 473   3              }
+ 474   2              TriPosOffset = 0;
+ 475   2          }
+ 476   1      
+ 477   1          /*  »ñÈ¡ÆÁÄ»ÏÔÊ¾²¨ÐÎµÄ×î´óºÍ×îÐ¡Öµ
+ 478   1              Get the MAX and MIN value of waveform on display*/
+ 479   1          for (i = 0; i <= 100; i++)
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 9   
+
+ 480   1          {
+ 481   2              tmp = *(ADCbuf + TriPos + TriPosOffset - 50 + i);
+ 482   2              if (tmp > adcMax)
+ 483   2                  adcMax = tmp;
+ 484   2              else if (tmp < adcMin)
+ 485   2                  adcMin = tmp;
+ 486   2          }
+ 487   1      
+ 488   1          //½«²ÉÑùµãµÄ×î´ó×îÐ¡²ÉÑùÖµ×ª»»³ÉµçÑ¹ÖµmV
+ 489   1          VMax = c_ADC_mv(adcMax, BGV, ADCbg, Lsb);
+ 490   1          VMin = c_ADC_mv(adcMin, BGV, ADCbg, Lsb);
+ 491   1      
+ 492   1          //»ñµÃ´¹Ö±±ê³ßµÄÉÏÏÂÏÞ
+ 493   1          getRulerV();
+ 494   1      
+ 495   1          //ÓÃ´¹Ö±±ê³ßmV·¶Î§·´Çó³öADCÖµµÄ·¶Î§×÷ÎªÍ¼±íµÄÏÔÊ¾ÉÏÏÂÏÞ
+ 496   1          plotADCMax = Convert_mv_ADC(RulerVMax, BGV, ADCbg, Lsb);
+ 497   1          plotADCMin = Convert_mv_ADC(RulerVMin, BGV, ADCbg, Lsb);
+ 498   1      
+ 499   1          //¼ÆËã²¨ÐÎµÄÆµÂÊ
+ 500   1          //Èç¹ûµ±Ç°µÄÊ±¼äÇø¼äºÍ²ÉÑùÊý¾ÝµÄÊ±¼ä¼ä¸ôÒ»ÖÂÔò½øÐÐÆµÂÊ¼ÆËã
+ 501   1          //Îª±ÜÃâADC²ÉÑù³ö´íÊ±ÆµÂÊÌø±äÀ÷º¦£¬¼ÆËã²¨³¤Ê±Ê¹ÓÃµçÑ¹±ê³ßµÄÖÐµãºÍ²¨·ùÖÐµãµÄ½ÏÐ¡Öµ
+ 502   1          //Èç¹ûÓöµ½ÆµÂÊÌø±äÎÞ·¨¶ÁÈ¡£¬½«×Ô¶¯Á¿³ÌÇÐ»»ÖÁºÏÊÊµÄÊÖ¶¯Á¿³Ì¼´¿É
+ 503   1          adcMid = (adcMax + adcMin) >> 1;
+ 504   1          plotADCMid = (plotADCMax + plotADCMin) >> 1;
+ 505   1          if (getWaveLength(adcMid < plotADCMid ? adcMid : plotADCMid, 1) || getWaveLength(adcMid < plotADCMid ?
+             - adcMid : plotADCMid, 0))
+ 506   1          {
+ 507   2              getWaveFreq();
+ 508   2          }
+ 509   1          else
+ 510   1          {
+ 511   2              WaveFreq = 0;
+ 512   2          }
+ 513   1      
+ 514   1          //Ó³Éä²ÉÑùÖµÖÁÆÁÄ»µÄÏÔÊ¾·¶Î§
+ 515   1          for (i = 0; i < SAMPLE_NUM; i++)
+ 516   1          {
+ 517   2              waveBuf[i] = remap(*(ADCbuf + i), plotADCMax, plotADCMin, CHART_V_MAX, CHART_V_MIN);
+ 518   2          }
+ 519   1      }
+ 520          
+ 521          /* »æÖÆÖ÷½çÃæ
+ 522             Draw main interface */
+ 523          void PlotChart(void)
+ 524          {
+ 525   1          uint8 i;
+ 526   1          uint8 *s;
+ 527   1      
+ 528   1          if (ClearDisplay)
+ 529   1          {
+ 530   2              ClearDisplay = 0;
+ 531   2              OLED_Clear();
+ 532   2      
+ 533   2              /* Í¼±í±ß¿ò
+ 534   2                 ²¨ÐÎºáÏò»æÍ¼Çø101¸ñ,26~126
+ 535   2                 ²¨ÐÎ×ÝÏò»æÍ¼Çø45¸ñ,8~52
+ 536   2                 Frame of chart 45x101*/
+ 537   2              OLED_DrawHLine(CHART_H_MIN, CHART_V_MIN, 4);
+ 538   2              OLED_DrawHLine(CHART_H_MIN, CHART_V_MAX, 4);
+ 539   2              OLED_DrawHLine(CHART_H_MAX - 3, CHART_V_MIN, 4);
+ 540   2              OLED_DrawHLine(CHART_H_MAX - 3, CHART_V_MAX, 4);
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 10  
+
+ 541   2              OLED_DrawHLine(CHART_H_MIN + 25 - 2, CHART_V_MIN, 5);
+ 542   2              OLED_DrawHLine(CHART_H_MIN + 25 - 2, CHART_V_MAX, 5);
+ 543   2              OLED_DrawHLine(CHART_H_MIN + 50 - 2, CHART_V_MIN, 5);
+ 544   2              OLED_DrawHLine(CHART_H_MIN + 50 - 2, CHART_V_MAX, 5);
+ 545   2              OLED_DrawHLine(CHART_H_MIN + 75 - 2, CHART_V_MIN, 5);
+ 546   2              OLED_DrawHLine(CHART_H_MIN + 75 - 2, CHART_V_MAX, 5);
+ 547   2              OLED_DrawVLine(CHART_H_MIN - 1, CHART_V_MIN, CHART_V_MAX - CHART_V_MIN + 1);
+ 548   2              OLED_DrawVLine(CHART_H_MAX + 1, CHART_V_MIN, CHART_V_MAX - CHART_V_MIN + 1);
+ 549   2      
+ 550   2              /* Í¼±íÐéÏßÍø¸ñ
+ 551   2                 Grid of chart */
+ 552   2              for (i = 0; i < 15; i++)
+ 553   2              {
+ 554   3                  OLED_DrawHLine(CHART_H_MIN + 7 * i, CHART_V_MIN + ((CHART_V_MAX - CHART_V_MIN) >> 1), 3);
+ 555   3              }
+ 556   2              for (i = 0; i < 6; i++)
+ 557   2              {
+ 558   3                  OLED_DrawVLine(CHART_H_MIN + 25, CHART_V_MIN + 1 + i * 8, 3);
+ 559   3                  OLED_DrawVLine(CHART_H_MIN + 50, CHART_V_MIN + 1 + i * 8, 3);
+ 560   3                  OLED_DrawVLine(CHART_H_MIN + 75, CHART_V_MIN + 1 + i * 8, 3);
+ 561   3              }
+ 562   2      
+ 563   2              /* ²¨ÐÎÎ»ÖÃ±ê³ß
+ 564   2                 Ruler for waveform position*/
+ 565   2              OLED_DrawHLine(0, 62, 25);
+ 566   2              OLED_DrawVLine(0, 60, 3);
+ 567   2              OLED_DrawVLine(24, 60, 3);
+ 568   2              OLED_DrawVLine((TriPos + TriPosOffset - 50) * 24 / 119, 58, 4);
+ 569   2      
+ 570   2              /* ²¨ÐÎµçÑ¹·¶Î§
+ 571   2                 Voltage range of waveform*/
+ 572   2              OLED_Set_Pos(26, 56);
+ 573   2              s = c_mv_V(VMin);
+ 574   2              OLED_DrawString(s);
+ 575   2              OLED_DrawString("-");
+ 576   2              s = c_mv_V(VMax);
+ 577   2              OLED_DrawString(s);
+ 578   2              OLED_DrawString("V");
+ 579   2          }
+ 580   1      
+ 581   1          OLED_Overlap(0); //ÉèÖÃ»æÍ¼Ä£Ê½Îª¸²¸Ç
+ 582   1      
+ 583   1          /* ÆµÂÊ
+ 584   1             Frequency */
+ 585   1          OLED_Set_Pos(92, 0);
+ 586   1          OLED_DrawString("      ");
+ 587   1          OLED_Set_Pos(92, 0);
+ 588   1          s = c_WaveFreq_Str();
+ 589   1          OLED_DrawString(s);
+ 590   1          OLED_DrawString("Hz");
+ 591   1      
+ 592   1          /* ×Ô¶¯Á¿³Ì±êÖ¾
+ 593   1             Flag for Auto Range*/
+ 594   1          if (ScaleV_Auto == 1)
+ 595   1          {
+ 596   2              OLED_Set_Pos(0, 0);
+ 597   2              OLED_DrawString("Auto");
+ 598   2          }
+ 599   1          else
+ 600   1          {
+ 601   2              OLED_Set_Pos(0, 0);
+ 602   2              OLED_DrawString("    ");
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 11  
+
+ 603   2          }
+ 604   1      
+ 605   1          /* ´¥·¢Öµ
+ 606   1             Trigger Level */
+ 607   1          OLED_Set_Pos(33, 0);
+ 608   1          if (OptionInChart == 2 && !WaveScroll)
+ 609   1          {
+ 610   2              OLED_DrawVLine(69, 0, 8);
+ 611   2              OLED_Reverse(1);
+ 612   2          }
+ 613   1          else
+ 614   1          {
+ 615   2              OLED_Reverse(1);
+ 616   2              OLED_DrawVLine(69, 0, 8);
+ 617   2              OLED_Reverse(0);
+ 618   2          }
+ 619   1          s = c_mv_V(TriLevel);
+ 620   1          OLED_DrawString("T");
+ 621   1          OLED_DrawString(s);
+ 622   1          OLED_DrawString("V");
+ 623   1          OLED_Reverse(0);
+ 624   1      
+ 625   1          /* ´¥·¢·½Ïò±êÖ¾
+ 626   1             Trigger Slope */
+ 627   1          if (OptionInChart == 3 && !WaveScroll)
+ 628   1          {
+ 629   2              OLED_DrawVLine(71, 0, 8);
+ 630   2              OLED_DrawVLine(78, 0, 8);
+ 631   2              OLED_Reverse(1);
+ 632   2          }
+ 633   1          else
+ 634   1          {
+ 635   2              OLED_Reverse(1);
+ 636   2              OLED_DrawVLine(71, 0, 8);
+ 637   2              OLED_DrawVLine(78, 0, 8);
+ 638   2              OLED_Reverse(0);
+ 639   2          }
+ 640   1          if (TriSlope)
+ 641   1          {
+ 642   2              OLED_DrawChar(72, 0, 123); //123ÉÏ¼ýÍ·£¬ÉÏÉýÑØ´¥·¢
+ 643   2          }
+ 644   1          else
+ 645   1          {
+ 646   2              OLED_DrawChar(72, 0, 124); //124ÏÂ¼ýÍ·£¬ÏÂ½µÑØ´¥·¢
+ 647   2          }
+ 648   1          OLED_Reverse(0);
+ 649   1      
+ 650   1          /* ´¥·¢·½Ê½±êÖ¾
+ 651   1             Trigger Mode */
+ 652   1          if (OptionInChart == 4 && !WaveScroll)
+ 653   1          {
+ 654   2              OLED_DrawVLine(86, 0, 8);
+ 655   2              OLED_Reverse(1);
+ 656   2          }
+ 657   1          else
+ 658   1          {
+ 659   2              OLED_Reverse(1);
+ 660   2              OLED_DrawVLine(86, 0, 8);
+ 661   2              OLED_Reverse(0);
+ 662   2          }
+ 663   1          OLED_Set_Pos(80, 0);
+ 664   1          if (TriMode == 0)
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 12  
+
+ 665   1          {
+ 666   2              OLED_DrawString("A");
+ 667   2          }
+ 668   1          else if (TriMode == 1)
+ 669   1          {
+ 670   2              OLED_DrawString("N");
+ 671   2          }
+ 672   1          else if (TriMode == 2)
+ 673   1          {
+ 674   2              OLED_DrawString("S");
+ 675   2          }
+ 676   1          OLED_Reverse(0);
+ 677   1      
+ 678   1          /* ´¥·¢Ê§°Ü±êÖ¾
+ 679   1             Flag for Trigger Fail*/
+ 680   1          if (TriFail)
+ 681   1          {
+ 682   2              OLED_Set_Pos(0, 24);
+ 683   2              OLED_DrawString("Fail");
+ 684   2          }
+ 685   1      
+ 686   1          //»æÖÆÔËÐÐ/Í£Ö¹±êÖ¾
+ 687   1          //    if (TriS && ADCRuning)
+ 688   1          //    {
+ 689   1          //        OLED_Set_Pos(0, 16);
+ 690   1          //        OLED_DrawString("Wait");
+ 691   1          //    }
+ 692   1          if (ADCRunning)
+ 693   1          {
+ 694   2              OLED_Set_Pos(0, 16);
+ 695   2              OLED_DrawString("Run ");
+ 696   2          }
+ 697   1          else
+ 698   1          {
+ 699   2              OLED_Set_Pos(0, 16);
+ 700   2              OLED_DrawString("Stop");
+ 701   2          }
+ 702   1      
+ 703   1          /* ºáÖáÊ±¼äÇø¼ä
+ 704   1             Seconds per division */
+ 705   1          OLED_Set_Pos(97, 56);
+ 706   1          OLED_DrawString("     ");
+ 707   1          if (OptionInChart == 0 && !WaveScroll)
+ 708   1          {
+ 709   2              OLED_Reverse(1);
+ 710   2          }
+ 711   1          OLED_Set_Pos(97, 56);
+ 712   1          OLED_DrawString(ScaleHTxt[ScaleH]);
+ 713   1          OLED_Reverse(0);
+ 714   1      
+ 715   1          /* ×ÝÖáµçÑ¹Çø¼ä
+ 716   1             Ruler for Voltage */
+ 717   1          OLED_Set_Pos(0, 8);
+ 718   1          OLED_DrawString("    ");
+ 719   1          if (OptionInChart == 1 && !WaveScroll)
+ 720   1          {
+ 721   2              OLED_Reverse(1);
+ 722   2          }
+ 723   1          s = c_mv_V(RulerVMax);
+ 724   1          OLED_Set_Pos(0, 8);
+ 725   1          OLED_DrawString(s);
+ 726   1          OLED_Reverse(0);
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 13  
+
+ 727   1          s = c_mv_V(RulerVMin);
+ 728   1          OLED_Set_Pos(0, 46);
+ 729   1          OLED_DrawString(s);
+ 730   1      
+ 731   1          OLED_Overlap(1); //»Ö¸´»æÍ¼Ä£Ê½Îªµþ¼Ó
+ 732   1      }
+ 733          
+ 734          /* »æÖÆ²¨ÐÎ
+ 735             Draw waveform*/
+ 736          void PlotWave(void)
+ 737          {
+ 738   1          uint8 i;
+ 739   1          //Vector Mode
+ 740   1          if (PlotMode == 0)
+ 741   1          {
+ 742   2              for (i = 0; i < (CHART_H_MAX - CHART_H_MIN); i++)
+ 743   2              {
+ 744   3                  OLED_DrawLine(
+ 745   3                      i + CHART_H_MIN,
+ 746   3                      waveBuf[TriPos + TriPosOffset - ((CHART_H_MAX - CHART_H_MIN) >> 1) + i],
+ 747   3                      i + CHART_H_MIN + 1,
+ 748   3                      waveBuf[TriPos + TriPosOffset - ((CHART_H_MAX - CHART_H_MIN) >> 1) + i + 1]);
+ 749   3              }
+ 750   2          }
+ 751   1          //Dots Mode
+ 752   1          if (PlotMode == 1)
+ 753   1          {
+ 754   2              for (i = 0; i <= (CHART_H_MAX - CHART_H_MIN); i++)
+ 755   2              {
+ 756   3                  OLED_DrawPixel(i + CHART_H_MIN, waveBuf[TriPos + TriPosOffset - ((CHART_H_MAX - CHART_H_MIN) >
+             -> 1) + i]);
+ 757   3              }
+ 758   2          }
+ 759   1      }
+ 760          
+ 761          /* »æÖÆÉèÖÃ½çÃæ
+ 762             Draw settings */
+ 763          void PlotSettings()
+ 764          {
+ 765   1          if (ClearDisplay)
+ 766   1          {
+ 767   2              ClearDisplay = 0;
+ 768   2              OLED_Clear();
+ 769   2      
+ 770   2              //LOGO
+ 771   2              OLED_DrawBMP(18, 24, 18 + 82 - 1, 24 + 13 - 1, MINIDSO, sizeof(MINIDSO) / sizeof(MINIDSO[0]));
+ 772   2      
+ 773   2              //Version
+ 774   2              OLED_Set_Pos(102, 30);
+ 775   2              OLED_DrawString("V0.3");
+ 776   2      
+ 777   2              //CopyRight
+ 778   2              OLED_Set_Pos(30, 39);
+ 779   2              OLED_DrawString("By Creative Lau");
+ 780   2              OLED_Set_Pos(44, 48);
+ 781   2              OLED_DrwCHS_16x16(0);
+ 782   2              OLED_DrwCHS_16x16(1);
+ 783   2              OLED_DrwCHS_16x16(2);
+ 784   2              OLED_DrwCHS_16x16(3);
+ 785   2              OLED_DrwCHS_16x16(4);
+ 786   2          }
+ 787   1      
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 14  
+
+ 788   1          OLED_Overlap(0);
+ 789   1      
+ 790   1          /* Ñ¡Ïî
+ 791   1             Options */
+ 792   1          /* DrawMode */
+ 793   1          OLED_Set_Pos(0, 0);
+ 794   1          OLED_DrawString("PMode=");
+ 795   1          OLED_DrawString(PlotModeTxt[PlotMode]);
+ 796   1      
+ 797   1          /* LSB */
+ 798   1          OLED_Set_Pos(70, 0);
+ 799   1          OLED_DrawString("LSB=");
+ 800   1          OLED_DrawString("   ");
+ 801   1          OLED_Set_Pos(94, 0);
+ 802   1          OLED_DrawNum(Lsb, 3);
+ 803   1      
+ 804   1          /* OLED_Brightness */
+ 805   1          OLED_Set_Pos(70, 12);
+ 806   1          OLED_DrawString("BRT=");
+ 807   1          OLED_DrawString("   ");
+ 808   1          OLED_Set_Pos(94, 12);
+ 809   1          OLED_DrawNum(OLED_Brightness, 3);
+ 810   1      
+ 811   1          /* Vbat */
+ 812   1          OLED_Set_Pos(0, 12);
+ 813   1          OLED_DrawString("Vbat=");
+ 814   1          OLED_DrawString(c_mv_V(VBat));
+ 815   1          OLED_DrawString("V");
+ 816   1      
+ 817   1          /* Ñ¡Ïî±êÖ¾£¬125¶ÔÓ¦×ó¼ýÍ·
+ 818   1             Option indicator, 125 is Left arrow */
+ 819   1          /* PlotMode */
+ 820   1          if (OptionInSettings == 0)
+ 821   1          {
+ 822   2              OLED_DrawChar(64, 0, 125);
+ 823   2              OLED_DrawChar(116, 0, ' ');
+ 824   2              OLED_DrawChar(116, 12, ' ');
+ 825   2          }
+ 826   1          /* LSB */
+ 827   1          else if (OptionInSettings == 1)
+ 828   1          {
+ 829   2              OLED_DrawChar(64, 0, ' ');
+ 830   2              OLED_DrawChar(116, 0, 125);
+ 831   2              OLED_DrawChar(116, 12, ' ');
+ 832   2          }
+ 833   1          /* OLED_Brightness */
+ 834   1          else if (OptionInSettings == 2)
+ 835   1          {
+ 836   2              OLED_DrawChar(64, 0, ' ');
+ 837   2              OLED_DrawChar(116, 0, ' ');
+ 838   2              OLED_DrawChar(116, 12, 125);
+ 839   2          }
+ 840   1      
+ 841   1          OLED_Overlap(1);
+ 842   1      }
+ 843          
+ 844          /* »æÖÆ±£´æ×´Ì¬
+ 845             Draw saving status*/
+ 846          void PlotSaveStatus(bit _saveStatus)
+ 847          {
+ 848   1          OLED_Set_Pos(64, 12);
+ 849   1          OLED_Overlap(0); //ÉèÖÃ»æÍ¼Ä£Ê½Îª¸²¸Ç
+C51 COMPILER V9.59.0.0   CHART                                                             05/13/2022 14:16:09 PAGE 15  
+
+ 850   1          if (_saveStatus)
+ 851   1          {
+ 852   2              OLED_DrawString("Save Succ.");
+ 853   2          }
+ 854   1          else
+ 855   1          {
+ 856   2              OLED_DrawString("Save Fail!");
+ 857   2          }
+ 858   1          OLED_Overlap(1); //ÉèÖÃ»æÍ¼Ä£Ê½Îª¸²¸Ç
+ 859   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   5608    ----
+   CONSTANT SIZE    =    287    ----
+   XDATA SIZE       =    459      55
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       5
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

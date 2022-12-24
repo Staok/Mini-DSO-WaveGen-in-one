@@ -1,0 +1,14 @@
+".\obj\uart.obj",
+".\obj\EEPROM.obj",
+".\obj\OSCOPE-V2-8bit-CDC.obj",
+".\obj\usb.obj",
+".\obj\usb_desc.obj",
+".\obj\usb_req_class.obj",
+".\obj\usb_req_std.obj",
+".\obj\usb_req_vendor.obj",
+".\obj\util.obj" 
+TO ".\obj\stc_usb_cdc_dso" 
+PRINT(".\obj\stc_usb_cdc_dso.map") CASE 
+REMOVEUNUSED 
+CLASSES (EDATA (0x0-0xFFF), 
+HDATA (0x0-0xFFF)) 

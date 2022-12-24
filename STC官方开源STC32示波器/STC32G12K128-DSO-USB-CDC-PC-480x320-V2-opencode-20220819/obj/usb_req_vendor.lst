@@ -1,0 +1,42 @@
+C251 COMPILER V5.60.0,  usb_req_vendor                                                     11/08/22  14:36:09  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE usb_req_vendor
+OBJECT MODULE PLACED IN .\obj\usb_req_vendor.obj
+COMPILER INVOKED BY: C:\Keil_v5\C251\BIN\C251.EXE src\usb\usb_req_vendor.c XSMALL INTR2 INCDIR(.\src;.\src\inc;.\src\usb
+                    -) DEBUG PRINT(.\obj\usb_req_vendor.lst) TABS(2) OBJECT(.\obj\usb_req_vendor.obj) 
+
+stmt  level    source
+
+    1          #include "stc.h"
+    2          #include "usb.h"
+    3          #include "usb_req_vendor.h"
+    4          
+    5          void usb_req_vendor()
+    6          {
+    7   1          usb_setup_stall();
+    8   1      }
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =         3     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =    ------     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =    ------     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

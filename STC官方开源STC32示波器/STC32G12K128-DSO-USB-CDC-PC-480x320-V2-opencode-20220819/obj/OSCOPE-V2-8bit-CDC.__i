@@ -1,0 +1,1 @@
+"src\OSCOPE-V2-8bit-CDC.c" XSMALL INTR2 INCDIR(.\src;.\src\inc;.\src\usb) DEBUG PRINT(.\obj\OSCOPE-V2-8bit-CDC.lst) TABS (2) OBJECT(.\obj\OSCOPE-V2-8bit-CDC.obj)

@@ -1,0 +1,12 @@
+
+STC32G12K128 带屏幕
+STC32G12K128-DSO-TFT-480x320-V2-opencode-20220806
+详细介绍页面：
+	https://www.stcai.com/newsinfo/4315738.html
+
+
+
+STC32G12K128 虚拟示波器
+STC32G12K128-DSO-USB-CDC-PC-480x320-V2-opencode-20220819
+详细介绍页面：
+	https://www.stcai.com/newsinfo/4315765.html
